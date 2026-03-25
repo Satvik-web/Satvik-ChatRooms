@@ -4,4 +4,4 @@ Features: Audio and Video, White board, Screen Sharing, File Transfer, Chat. All
 
 Check it out: [https://satvik-web.github.io/Satvik-ChatRooms/](https://satvik-web.github.io/Satvik-ChatRooms/)
 
-<img width="1000" height="1000" alt="icon" src="https://github.com/user-attachments/assets/28af7e39-b9d8-4dd8-a5ca-5c3d66de9234" />
+<img width="1000" height="1000" alt="icon" src="https://github.com/user-attachments/assets/e1d9e87d-5d80-4af9-8f6f-592981a2fd84" />
