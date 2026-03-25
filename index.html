@@ -1136,14 +1136,317 @@
             font-family: 'Outfit', sans-serif;
             opacity: 0.95;
         }
+
+        /* MOBILE OPTIMIZATIONS */
+        body.is-mobile .branding-container {
+            top: 10px;
+            left: 10px;
+            padding: 8px 15px;
+            gap: 5px;
+            background: rgba(18, 18, 18, 0.9);
+            z-index: 2200;
+            flex-direction: column;
+            align-items: flex-start;
+            border-radius: 16px;
+        }
+
+        body.is-mobile .branding-logo {
+            width: 22px;
+            height: 22px;
+        }
+
+        body.is-mobile .branding-text {
+            font-size: 0.8rem;
+        }
+
+        body.is-mobile .mobile-only-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .mobile-video-toggle-btn {
+            display: none;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 2500;
+        }
+
+        body.is-mobile.is-pinned .mobile-video-toggle-btn {
+            display: flex !important;
+        }
+
+        /* Shift button left during whiteboard to accommodate cursor toggle */
+        body.is-mobile.wb-active .mobile-video-toggle-btn {
+            right: 110px !important;
+            top: 10px !important;
+        }
+
+        body.is-mobile .controls-overlay {
+            position: fixed !important;
+            bottom: 30px !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            top: auto !important;
+            width: auto !important;
+            max-width: 90vw !important;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 10px 15px;
+            border-radius: 50px;
+            gap: 10px;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            z-index: 2200;
+        }
+
+        body.is-mobile .btn-circle {
+            width: 44px;
+            height: 44px;
+        }
+
+        body.is-mobile .chat-overlay,
+        body.is-mobile .participants-popup {
+            width: 100vw !important;
+            height: 75vh !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: auto !important;
+            border-radius: 24px 24px 0 0 !important;
+            transform: none !important;
+            box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8) !important;
+            z-index: 2200 !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.is-mobile .video-grid.in-call #local-video-container {
+            width: 80px;
+            height: 120px;
+            bottom: 100px;
+            /* Positioned above the bottom pill */
+            right: 15px;
+            top: auto !important;
+            left: auto !important;
+            z-index: 1900;
+        }
+
+        /* Fixed Ribbon at Top for Mobile */
+        body.is-mobile .video-ribbon {
+            display: flex !important;
+            position: fixed !important;
+            top: 55px !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100vw !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(10, 10, 10, 0.8) !important;
+            transform: none !important;
+            resize: none !important;
+            padding: 8px !important;
+            margin: 0 !important;
+            z-index: 2000 !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        body.is-mobile .video-ribbon-header {
+            display: none !important;
+        }
+
+        body.is-mobile .ribbon-content {
+            display: flex !important;
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            gap: 10px !important;
+            justify-content: center !important;
+            /* Centered for better UI balance */
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        body.is-mobile .ribbon-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        body.is-mobile .ribbon-content .video-wrapper {
+            width: 100px !important;
+            height: 100px !important;
+            flex-shrink: 0 !important;
+            border-radius: 8px !important;
+        }
+
+        body.is-mobile .ribbon-content #local-video-container {
+            position: relative !important;
+            bottom: auto !important;
+            right: auto !important;
+            top: auto !important;
+            left: auto !important;
+            width: 100px !important;
+            height: 100px !important;
+            z-index: 100 !important;
+            margin: 0 !important;
+        }
+
+        body.is-mobile .wb-toolbar {
+            bottom: 95px !important;
+            /* Above the control pill */
+            top: auto !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            width: 90% !important;
+            max-width: 360px !important;
+            height: auto !important;
+            padding: 8px 15px !important;
+            background: rgba(15, 15, 15, 0.9) !important;
+            backdrop-filter: blur(20px) !important;
+            border-radius: 40px !important;
+            /* Pill style */
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+            justify-content: flex-start !important;
+            /* Changed to flex-start for scroll behavior */
+            gap: 15px !important;
+            z-index: 1800 !important;
+            scrollbar-width: none;
+            display: flex !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body.is-mobile.ribbon-hidden #video-ribbon,
+        body.is-mobile.ribbon-hidden .video-wrapper:not(.whiteboard-wrapper):not(.pinned) {
+            display: none !important;
+        }
+
+        body.is-mobile.ribbon-hidden .video-grid.in-call {
+            padding-top: 15px !important;
+        }
+
+        body.is-mobile .wb-toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        body.is-mobile .wb-tool-btn {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+        }
+
+        body.is-mobile .video-grid.in-call,
+        body.is-mobile .video-grid.in-call.multi-user {
+            grid-template-columns: 1fr;
+            grid-auto-rows: 1fr;
+            padding-top: 160px;
+            /* Offset for the top ribbon */
+            padding-bottom: 140px;
+            /* Offset for tools and controls */
+        }
+
+        /* LANDSCAPE MOBILE SUPPORT */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body.is-mobile .controls-overlay {
+                bottom: 10px;
+                padding: 6px 15px;
+                gap: 8px;
+            }
+
+            body.is-mobile .btn-circle {
+                width: 36px;
+                height: 36px;
+            }
+
+            body.is-mobile .video-grid.in-call #local-video-container {
+                width: 100px;
+                height: 75px;
+                bottom: 10px;
+                right: 70px;
+            }
+
+            body.is-mobile .branding-container {
+                display: none;
+            }
+
+            body.is-mobile .video-ribbon {
+                width: 140px !important;
+                height: 100vh !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: auto !important;
+                border-left: none !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-bottom: none !important;
+            }
+
+            body.is-mobile .ribbon-content {
+                flex-direction: column !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+
+            body.is-mobile .video-grid.in-call {
+                padding: 0 !important;
+                padding-left: 140px !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        body.is-mobile .modal-card {
+            padding: 20px;
+            border-radius: 20px;
+            width: 95%;
+        }
+
+        body.is-mobile .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        body.is-mobile .id-section {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        body.is-mobile .id-value {
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="branding-container">
-        <img src="icon.png" class="branding-logo" alt="Logo">
-        <span class="branding-text">Satvik ChatRooms</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="icon.png" class="branding-logo" alt="Logo">
+            <span class="branding-text">Satvik ChatRooms</span>
+        </div>
     </div>
 
     <div class="container">
@@ -1311,6 +1614,32 @@
     </div>
 
     <script>
+        function toggleMobileRibbon() {
+            console.log("Toggling mobile ribbon visibility...");
+            document.body.classList.toggle('ribbon-hidden');
+            const btn = document.getElementById('mobile-video-toggle-btn');
+            if (btn) {
+                const isHidden = document.body.classList.contains('ribbon-hidden');
+                const icon = btn.querySelector('.material-symbols-rounded');
+                if (icon) icon.textContent = isHidden ? 'visibility' : 'visibility_off';
+                btn.title = isHidden ? 'Show Video' : 'Hide Video';
+            }
+            if (typeof refreshLayout === 'function') refreshLayout();
+        }
+
+        function checkDeviceType() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            if (isMobile) {
+                document.body.classList.add('is-mobile');
+            } else {
+                document.body.classList.remove('is-mobile');
+                document.body.classList.remove('ribbon-hidden');
+            }
+            if (typeof refreshLayout === 'function') refreshLayout();
+        }
+        window.addEventListener('load', checkDeviceType);
+        window.addEventListener('resize', checkDeviceType);
+
         let peer;
         let localStream;
         let calls = new Map();
@@ -2043,6 +2372,8 @@
                     wrapper.remove();
                 }
                 wbActive = false;
+                document.body.classList.remove('wb-active');
+                document.body.classList.remove('ribbon-hidden'); // Reveal videos when closing
                 wbBtn.classList.remove('active');
                 refreshLayout();
                 if (broadcast) broadcastWhiteboard({ type: 'wb-close' });
@@ -2595,6 +2926,8 @@
                 }
 
                 wbActive = true;
+                document.body.classList.add('wb-active');
+
                 wbBtn.classList.add('active');
                 refreshLayout();
                 setTimeout(() => {
@@ -2638,6 +2971,10 @@
                 pinnedWrapperId = null;
             } else {
                 pinnedWrapperId = wrapperId;
+                // Auto-hide the ribbon on mobile when something new is pinned (to maximize space)
+                if (document.body.classList.contains('is-mobile')) {
+                    document.body.classList.add('ribbon-hidden');
+                }
             }
             refreshLayout();
         }
@@ -3787,6 +4124,7 @@
             let ribbon = document.getElementById('video-ribbon');
             if (pinnedWrapperId && totalCount > 1) {
                 videoGrid.classList.add('pinned-mode');
+                document.body.classList.add('is-pinned');
                 if (!ribbon) {
                     ribbon = document.createElement('div');
                     ribbon.id = 'video-ribbon';
@@ -3826,10 +4164,39 @@
                         ribbonContent.appendChild(w);
                     } else {
                         videoGrid.insertBefore(w, ribbon);
+                        w.classList.add('pinned');
+
+                        // Contextual Mobile Toggle Button
+                        if (document.body.classList.contains('is-mobile')) {
+                            let btn = document.getElementById('mobile-video-toggle-btn');
+                            if (!btn) {
+                                btn = document.createElement('button');
+                                btn.id = 'mobile-video-toggle-btn';
+                                btn.className = 'mobile-video-toggle-btn';
+                                btn.onclick = toggleMobileRibbon;
+                                w.appendChild(btn);
+                            } else if (btn.parentElement !== w) {
+                                w.appendChild(btn); // Move to active pinned wrapper
+                            }
+
+                            // Shift if whiteboard to avoid cursor toggle
+                            if (w.id === 'whiteboard-wrapper') {
+                                btn.style.right = '110px';
+                                btn.style.top = '10px';
+                            } else {
+                                btn.style.right = '10px';
+                                btn.style.top = '10px';
+                            }
+
+                            const isHidden = document.body.classList.contains('ribbon-hidden');
+                            btn.innerHTML = `<span class="material-symbols-rounded">${isHidden ? 'visibility' : 'visibility_off'}</span>`;
+                            btn.title = isHidden ? 'Show Video' : 'Hide Video';
+                        }
                     }
                 });
             } else {
                 pinnedWrapperId = null;
+                document.body.classList.remove('is-pinned');
                 if (ribbon) ribbon.remove();
                 wrappers.forEach(w => {
                     w.classList.remove('pinned');
