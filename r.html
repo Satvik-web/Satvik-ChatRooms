@@ -2908,6 +2908,10 @@
                     document.getElementById('wb-cursors-layer').style.display = showCursors ? 'block' : 'none';
                 };
 
+                if (document.body.classList.contains('is-mobile')) {
+                    cursorToggleBtn.style.display = 'none';
+                }
+
                 wrapper.style.backgroundColor = '#111111';
                 wrapper.style.zIndex = '0';
                 wbCanvas.style.pointerEvents = 'none';
@@ -3403,7 +3407,8 @@
                 const { x, y, mode, hide } = wbPendingCursor;
                 const lc = document.getElementById('local-cursor');
                 if (lc) {
-                    if (hide) {
+                    // Mobile Optimization: Hide local cursor completely on mobile
+                    if (hide || document.body.classList.contains('is-mobile')) {
                         lc.style.display = 'none';
                     } else {
                         lc.style.display = 'flex';
@@ -3452,7 +3457,8 @@
             const isOverUI = e.target.closest('button') || e.target.closest('input') || e.target.closest('select');
             wbPendingCursor = { x: e.clientX, y: e.clientY, mode: wbMode, hide: isOverUI };
 
-            if (showCursors && Date.now() - lastCursorBroadcast > 40) {
+            const isMobile = document.body.classList.contains('is-mobile');
+            if (showCursors && !isMobile && Date.now() - lastCursorBroadcast > 40) {
                 const p = getPos(e);
                 broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
                 lastCursorBroadcast = Date.now();
@@ -3473,7 +3479,8 @@
             const isOverUI = e.target.closest('button') || e.target.closest('input') || e.target.closest('select');
             wbPendingCursor = { x: touch.clientX, y: touch.clientY, mode: wbMode, hide: isOverUI };
 
-            if (showCursors && Date.now() - lastCursorBroadcast > 40) {
+            const isMobile = document.body.classList.contains('is-mobile');
+            if (showCursors && !isMobile && Date.now() - lastCursorBroadcast > 40) {
                 const p = getPos(touch);
                 broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
                 lastCursorBroadcast = Date.now();
@@ -3669,7 +3676,7 @@
             } else if (msg.type === 'wb-close') {
                 if (wbActive) toggleWhiteboard(false);
             } else if (msg.type === 'wb-cursor') {
-                if (!showCursors) return;
+                if (!showCursors || document.body.classList.contains('is-mobile')) return;
                 let layer = document.getElementById('wb-cursors-layer');
                 if (!layer) return;
                 let cursor = document.getElementById(`wb-cursor-${peerId}`);
