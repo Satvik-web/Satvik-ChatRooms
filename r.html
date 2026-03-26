@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satvik ChatRooms 4</title>
+    <title>Satvik ChatRooms 5</title>
     <link rel="icon" type="image/png" href="icon.png">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -2371,7 +2371,7 @@
                 selectBtn.className = `wb-tool-btn ${wbMode === 'select' ? 'active' : ''}`;
                 selectBtn.title = 'Select';
                 selectBtn.innerHTML = '<span class="material-symbols-rounded">arrow_selector_tool</span>';
-                selectBtn.onclick = () => { wbMode = 'select'; updateWbCursor(); updateToolbarUI(); };
+                selectBtn.onclick = () => { wbMode = 'select'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const penBtn = document.createElement('button');
                 penBtn.className = `wb-tool-btn ${wbMode === 'draw' ? 'active' : ''}`;
@@ -2385,6 +2385,7 @@
                 textBtn.innerHTML = '<span class="material-symbols-rounded">text_fields</span>';
                 textBtn.onclick = () => {
                     wbMode = 'select';
+                    updateWbBrush();
                     updateToolbarUI();
                     const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                     const cx = -wbOffsetX + window.innerWidth / 2 - 50;
@@ -3303,7 +3304,7 @@
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
                 wbMode = 'select';
-                updateWbCursor();
+                updateWbCursor(); updateWbBrush();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
             }
         });
@@ -3320,7 +3321,7 @@
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
                 wbMode = 'select';
-                updateWbCursor();
+                updateWbCursor(); updateWbBrush();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
             }
         }, { passive: false });
@@ -3370,26 +3371,29 @@
                 broadcastWhiteboard({ type: 'wb-path', path: pathData });
             });
 
-            // Pan mode: use Fabric viewportTransform drag
-            let panStartX = 0, panStartY = 0;
-            let panVPT = null;
-            wbFabric.on('mouse:down', (opt) => {
+            // Pan mode: use native pointer events directly on container (works on mouse + touch)
+            let panActive = false, panStartX = 0, panStartY = 0, panStartVPT = null;
+            container.addEventListener('pointerdown', (e) => {
                 if (wbMode !== 'pan') return;
-                isPanning = true;
-                panStartX = opt.e.clientX || (opt.e.touches && opt.e.touches[0].clientX) || 0;
-                panStartY = opt.e.clientY || (opt.e.touches && opt.e.touches[0].clientY) || 0;
-                panVPT = [...wbFabric.viewportTransform];
-            });
-            wbFabric.on('mouse:move', (opt) => {
-                if (!isPanning || wbMode !== 'pan') return;
-                const cx = opt.e.clientX || (opt.e.touches && opt.e.touches[0].clientX) || 0;
-                const cy = opt.e.clientY || (opt.e.touches && opt.e.touches[0].clientY) || 0;
-                const vpt = [...panVPT];
-                vpt[4] += cx - panStartX;
-                vpt[5] += cy - panStartY;
+                panActive = true;
+                panStartX = e.clientX;
+                panStartY = e.clientY;
+                panStartVPT = [...wbFabric.viewportTransform];
+                container.setPointerCapture(e.pointerId);
+                e.preventDefault();
+            }, { passive: false });
+            container.addEventListener('pointermove', (e) => {
+                if (!panActive) return;
+                const vpt = [...panStartVPT];
+                vpt[4] += e.clientX - panStartX;
+                vpt[5] += e.clientY - panStartY;
                 wbFabric.setViewportTransform(vpt);
+            }, { passive: true });
+            container.addEventListener('pointerup', (e) => {
+                if (panActive) container.releasePointerCapture(e.pointerId);
+                panActive = false;
             });
-            wbFabric.on('mouse:up', () => { isPanning = false; });
+            container.addEventListener('pointercancel', () => { panActive = false; });
 
             // Cursor broadcast (desktop only)
             wbFabric.upperCanvasEl.addEventListener('mousemove', (e) => {
@@ -3417,10 +3421,9 @@
 
         function updateWbBrush() {
             if (!wbFabric) return;
-            const isMobile = document.body.classList.contains('is-mobile');
-            if (wbMode === 'pan') {
+            if (wbMode === 'pan' || wbMode === 'select') {
                 wbFabric.isDrawingMode = false;
-                wbFabric.defaultCursor = 'grab';
+                wbFabric.defaultCursor = wbMode === 'pan' ? 'grab' : 'default';
             } else if (wbMode === 'erase') {
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = '#111111';
@@ -3506,6 +3509,7 @@
 
                     wbMode = 'select';
                     if (typeof updateWbCursor === 'function') updateWbCursor();
+                    if (typeof updateWbBrush === 'function') updateWbBrush();
                     if (typeof updateToolbarUI === 'function') updateToolbarUI();
                 };
                 img.src = e.target.result;
