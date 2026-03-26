@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satvik ChatRooms 5</title>
+    <title>Satvik ChatRooms 8</title>
     <link rel="icon" type="image/png" href="icon.png">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -3362,8 +3362,15 @@
 
             wbCanvas = wbFabric.upperCanvasEl; // for backward compat refs
 
-            // Broadcast the complete path to peers when a stroke is finished
+            // Broadcast the complete path to peers when a stroke is finished.
+            // In pan mode, immediately remove the path so no ghost stroke appears.
             wbFabric.on('path:created', (e) => {
+                if (wbMode === 'pan') {
+                    // Discard any path accidentally created during pan
+                    wbFabric.remove(e.path);
+                    wbFabric.renderAll();
+                    return;
+                }
                 const pathObj = e.path;
                 pathObj.selectable = false;
                 pathObj.evented = false;
@@ -3371,29 +3378,91 @@
                 broadcastWhiteboard({ type: 'wb-path', path: pathData });
             });
 
-            // Pan mode: use native pointer events directly on container (works on mouse + touch)
-            let panActive = false, panStartX = 0, panStartY = 0, panStartVPT = null;
-            container.addEventListener('pointerdown', (e) => {
-                if (wbMode !== 'pan') return;
-                panActive = true;
-                panStartX = e.clientX;
-                panStartY = e.clientY;
-                panStartVPT = [...wbFabric.viewportTransform];
-                container.setPointerCapture(e.pointerId);
+            // ── Pan / Zoom — all via native events on upperCanvasEl ───────────────
+            // Using native DOM events (not Fabric's abstracted events) gives reliable
+            // clientX/Y on both desktop and mobile touch. Capture phase fires BEFORE
+            // Fabric's bubble-phase draw code, so stopPropagation() cleanly blocks drawing.
+            const uc = wbFabric.upperCanvasEl;
+            let panActive = false, panPrevX = 0, panPrevY = 0;
+            let pinchDist = null;
+
+            // ── Wheel zoom (desktop) ──────────────────────────────────────────────
+            uc.addEventListener('wheel', (e) => {
                 e.preventDefault();
+                let zoom = wbFabric.getZoom();
+                zoom *= e.deltaY < 0 ? 1.1 : (1 / 1.1);
+                zoom = Math.max(0.05, Math.min(20, zoom));
+                const r = uc.getBoundingClientRect();
+                wbFabric.zoomToPoint(new fabric.Point(e.clientX - r.left, e.clientY - r.top), zoom);
+                wbFabric.requestRenderAll();
             }, { passive: false });
-            container.addEventListener('pointermove', (e) => {
+
+            // ── Pointer events for pan (desktop mouse + mobile touch unified) ─────
+            uc.addEventListener('pointerdown', (e) => {
+                if (wbMode !== 'pan' || e.isPrimary === false) return;
+                panActive = true;
+                panPrevX = e.clientX;
+                panPrevY = e.clientY;
+                uc.setPointerCapture(e.pointerId);
+                e.stopPropagation();  // prevent Fabric drawing this
+                e.preventDefault();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('pointermove', (e) => {
+                if (!panActive || pinchDist !== null) return;
+                const dx = e.clientX - panPrevX;
+                const dy = e.clientY - panPrevY;
+                panPrevX = e.clientX;
+                panPrevY = e.clientY;
+                wbFabric.relativePan(new fabric.Point(dx, dy));
+                wbFabric.requestRenderAll();
+                e.stopPropagation();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('pointerup', (e) => {
                 if (!panActive) return;
-                const vpt = [...panStartVPT];
-                vpt[4] += e.clientX - panStartX;
-                vpt[5] += e.clientY - panStartY;
-                wbFabric.setViewportTransform(vpt);
-            }, { passive: true });
-            container.addEventListener('pointerup', (e) => {
-                if (panActive) container.releasePointerCapture(e.pointerId);
+                try { uc.releasePointerCapture(e.pointerId); } catch (_) { }
                 panActive = false;
-            });
-            container.addEventListener('pointercancel', () => { panActive = false; });
+                e.stopPropagation();
+            }, { capture: true });
+
+            uc.addEventListener('pointercancel', () => { panActive = false; }, { capture: true });
+
+            // ── Touch events for pinch zoom (supersedes pointer during 2-finger) ──
+            uc.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    pinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    panActive = false;  // cancel pan if 2nd finger lands mid-pan
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 2 || pinchDist === null) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const d = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                let zoom = wbFabric.getZoom() * (d / pinchDist);
+                zoom = Math.max(0.05, Math.min(20, zoom));
+                pinchDist = d;
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const r = uc.getBoundingClientRect();
+                wbFabric.zoomToPoint(new fabric.Point(midX - r.left, midY - r.top), zoom);
+                wbFabric.requestRenderAll();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) pinchDist = null;
+            }, { capture: true });
+
 
             // Cursor broadcast (desktop only)
             wbFabric.upperCanvasEl.addEventListener('mousemove', (e) => {
@@ -3421,15 +3490,29 @@
 
         function updateWbBrush() {
             if (!wbFabric) return;
-            if (wbMode === 'pan' || wbMode === 'select') {
+
+            // Always recreate the brush fresh — guarantees clean state on every mode switch
+            wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
+
+            if (wbMode === 'pan') {
+                // Keep isDrawingMode=true so Fabric's mouse:down/move/up events fire normally.
+                // Zero-width transparent brush = no visible ink; path:created discards the path.
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = 'rgba(0,0,0,0)';
+                wbFabric.freeDrawingBrush.width = 0;
+                wbFabric.freeDrawingCursor = 'grab';
+            } else if (wbMode === 'select') {
+                // Turn off drawing so touches reach the text/image layer above
                 wbFabric.isDrawingMode = false;
-                wbFabric.defaultCursor = wbMode === 'pan' ? 'grab' : 'default';
+                wbFabric.defaultCursor = 'default';
             } else if (wbMode === 'erase') {
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = '#111111';
                 wbFabric.freeDrawingBrush.width = wbSize * 4;
+                wbFabric.freeDrawingBrush.decimate = 1;
                 wbFabric.freeDrawingCursor = 'cell';
             } else {
+                // draw
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = wbColor;
                 wbFabric.freeDrawingBrush.width = wbSize * 2;
