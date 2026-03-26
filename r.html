@@ -1710,6 +1710,7 @@
         let activeContextMenuId = null;
         let activeScaleHandle = null;
         let activeRotateHandle = null;
+        let laserData = new Map(); // id -> { points: [{x,y,t},...], name: '...' }
 
         function createTextBox(id, x, y, text, color, fontSize, fontFamily, isBold, isItalic, rotation = 0, broadcast = true) {
             if (wbTextBoxes.has(id)) return wbTextBoxes.get(id);
@@ -2392,6 +2393,7 @@
                 wbBtn.classList.remove('active');
                 refreshLayout();
                 if (broadcast) broadcastWhiteboard({ type: 'wb-close' });
+                laserData.clear();
             } else {
                 // Build wrapper tile
                 const wrapper = document.createElement('div');
@@ -2870,6 +2872,13 @@
                     textLayer.style.pointerEvents = 'none';
                     wbTextBoxes.forEach(box => textLayer.appendChild(box.parentElement));
                     wbImages.forEach(img => textLayer.appendChild(img.parentElement));
+
+                    const laserCanvas = document.createElement('canvas');
+                    laserCanvas.id = 'wb-laser-canvas';
+                    laserCanvas.width = 4000;
+                    laserCanvas.height = 4000;
+                    laserCanvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none; z-index:5;';
+                    textLayer.appendChild(laserCanvas);
                 }
                 let backLayer = document.getElementById('wb-back-layer');
                 if (!backLayer) {
@@ -3579,6 +3588,7 @@
 
             updateWbBrush();
             log('Fabric whiteboard initialized');
+            renderLasers();
         }
 
         function updateWbBrush() {
@@ -3746,15 +3756,9 @@
                 textLayer.appendChild(laser);
             }
 
-            // Create trail bit — leaves a persistent path that fades out
-            const trail = document.createElement('div');
-            trail.className = 'wb-laser-pointer';
-            trail.style.cssText = `position:absolute; width:10px; height:10px; background:#ff4757; border-radius:50%; left:${px}px; top:${py}px; pointer-events:none; z-index:999; box-shadow:0 0 10px #ff4757; transform:translate(-50%, -50%); animation:none; transition:opacity 0.2s ease-out;`;
-            textLayer.appendChild(trail);
-            setTimeout(() => {
-                trail.style.opacity = '0';
-                setTimeout(() => trail.remove(), 200);
-            }, 300);
+            // Track points for smooth canvas trail
+            if (!laserData.has(id)) laserData.set(id, { points: [], name });
+            laserData.get(id).points.push({ x: px, y: py, t: Date.now() });
 
             laser.style.left = px + 'px';
             laser.style.top = py + 'px';
@@ -3762,8 +3766,48 @@
             if (laser._fade) clearTimeout(laser._fade);
             laser._fade = setTimeout(() => {
                 laser.style.opacity = '0';
-                setTimeout(() => { if (laser) laser.remove(); }, 300);
+                setTimeout(() => {
+                    if (laser) laser.remove();
+                    laserData.delete(id);
+                }, 300);
             }, 1000);
+        }
+
+        function renderLasers() {
+            if (!wbActive) return;
+            const canvas = document.getElementById('wb-laser-canvas');
+            if (!canvas) { requestAnimationFrame(renderLasers); return; }
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const now = Date.now();
+
+            laserData.forEach((data, id) => {
+                data.points = data.points.filter(p => now - p.t < 500); // 500ms trail
+                if (data.points.length < 2) return;
+
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#ff4757';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff4757';
+
+                // Draw segments with tapering
+                for (let i = 1; i < data.points.length; i++) {
+                    const p1 = data.points[i - 1];
+                    const p2 = data.points[i];
+                    const age = now - p2.t;
+                    const life = Math.max(0, 1 - (age / 500));
+
+                    ctx.beginPath();
+                    ctx.globalAlpha = life;
+                    ctx.lineWidth = 12 * life; // taper from 12px
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            });
+            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            requestAnimationFrame(renderLasers);
         }
 
         function handleWhiteboardMessage(msg, peerId) {
