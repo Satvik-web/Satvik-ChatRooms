@@ -3441,14 +3441,15 @@
             }
 
             if (wbDrawing && wbPendingDraw) {
-                const { x, y } = wbPendingDraw;
-                const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                drawSegment(wbLastX, wbLastY, x, y, color, wbSize);
-                wbLastX = x; wbLastY = y;
-                wbPendingDraw = null;
+                // wbPendingDraw only kept for reference; drawing is now immediate
             }
 
-            wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
+            // Only continue rAF loop if cursor updates are still needed
+            if (wbPendingCursor || isPanning) {
+                wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
+            } else {
+                wbAnimationFrame = null;
+            }
         }
 
         window.addEventListener('mousemove', e => {
@@ -3467,8 +3468,11 @@
             if (isPanning) {
                 wbPendingPan = { dx: e.movementX, dy: e.movementY };
             } else if (wbDrawing) {
+                // Draw IMMEDIATELY — no buffering to avoid latency
                 const p = getPos(e);
-                wbPendingDraw = { x: p.x, y: p.y };
+                const color = (wbMode === 'erase') ? '#111111' : wbColor;
+                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
+                wbLastX = p.x; wbLastY = p.y;
             }
             if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
         });
@@ -3496,8 +3500,11 @@
                 wbLastTouchY = touch.clientY;
             } else if (wbDrawing) {
                 e.preventDefault();
+                // Draw IMMEDIATELY — no buffering to avoid local ink latency
                 const p = getPos(touch);
-                wbPendingDraw = { x: p.x, y: p.y };
+                const color = (wbMode === 'erase') ? '#111111' : wbColor;
+                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
+                wbLastX = p.x; wbLastY = p.y;
             }
             if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
         }, { passive: false });
