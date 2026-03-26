@@ -592,7 +592,6 @@
         #wb-canvas-container canvas,
         #wb-canvas-container .upper-canvas {
             touch-action: none !important;
-            will-change: contents;
         }
 
         .wb-clear-btn {
@@ -2892,7 +2891,7 @@
                 if (!fabricContainer) {
                     fabricContainer = document.createElement('div');
                     fabricContainer.id = 'wb-canvas-container';
-                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;touch-action:none;will-change:transform;';
+                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;touch-action:none;';
                 }
 
                 wrapper.appendChild(backLayer);
@@ -3342,16 +3341,36 @@
             container.appendChild(canvasEl);
 
             const isMobile = document.body.classList.contains('is-mobile');
+            const dpr = window.devicePixelRatio || 1;
+            fabric.devicePixelRatio = dpr; // ensure Fabric uses the real DPR
             wbFabric = new fabric.Canvas('wb-fabric-canvas', {
                 isDrawingMode: true,
                 backgroundColor: '#111111',
                 selection: false,
-                imageSmoothingEnabled: false,
+                enableRetinaScaling: true,
                 allowTouchScrolling: false,
                 renderOnAddRemove: false
             });
-            wbFabric.setWidth(container.offsetWidth || window.innerWidth);
-            wbFabric.setHeight(container.offsetHeight || window.innerHeight);
+            const initW = container.offsetWidth || window.innerWidth;
+            const initH = container.offsetHeight || window.innerHeight;
+            wbFabric.setDimensions({ width: initW, height: initH });
+
+            // Force physical-pixel canvas buffer — guarantees crisp rendering on high-DPR phones.
+            // Fabric's enableRetinaScaling may not always fire correctly, so we override explicitly.
+            function applyDPR() {
+                const d = window.devicePixelRatio || 1;
+                const cw = wbFabric.width, ch = wbFabric.height;
+                [wbFabric.lowerCanvasEl, wbFabric.upperCanvasEl].forEach(el => {
+                    el.width = Math.round(cw * d);
+                    el.height = Math.round(ch * d);
+                    el.style.width = cw + 'px';
+                    el.style.height = ch + 'px';
+                    const ctx = el.getContext('2d');
+                    ctx.setTransform(d, 0, 0, d, 0, 0); // scale up: draw calls are in CSS px
+                });
+            }
+            applyDPR();
+            wbFabric._applyDPR = applyDPR; // store for ResizeObserver use
 
             // Mobile video constraints already applied at stream acquisition
             // Fabric PencilBrush setup
@@ -3395,7 +3414,18 @@
                 const r = uc.getBoundingClientRect();
                 wbFabric.zoomToPoint(new fabric.Point(e.clientX - r.left, e.clientY - r.top), zoom);
                 wbFabric.requestRenderAll();
+                syncTextLayer();
+                updateWbBrush();
             }, { passive: false });
+
+            // Sync wb-text-layer (images + text boxes) to match Fabric's viewportTransform
+            function syncTextLayer() {
+                const tl = document.getElementById('wb-text-layer');
+                if (!tl || !wbFabric) return;
+                const v = wbFabric.viewportTransform;
+                tl.style.transformOrigin = '0 0';
+                tl.style.transform = `matrix(${v[0]},${v[1]},${v[2]},${v[3]},${v[4]},${v[5]})`;
+            }
 
             // ── Pointer events for pan (desktop mouse + mobile touch unified) ─────
             uc.addEventListener('pointerdown', (e) => {
@@ -3416,6 +3446,7 @@
                 panPrevY = e.clientY;
                 wbFabric.relativePan(new fabric.Point(dx, dy));
                 wbFabric.requestRenderAll();
+                syncTextLayer();
                 e.stopPropagation();
             }, { capture: true, passive: false });
 
@@ -3457,6 +3488,8 @@
                 const r = uc.getBoundingClientRect();
                 wbFabric.zoomToPoint(new fabric.Point(midX - r.left, midY - r.top), zoom);
                 wbFabric.requestRenderAll();
+                syncTextLayer();
+                updateWbBrush();
             }, { capture: true, passive: false });
 
             uc.addEventListener('touchend', (e) => {
@@ -3478,9 +3511,9 @@
             if (window._wbResizeObserver) window._wbResizeObserver.disconnect();
             window._wbResizeObserver = new ResizeObserver(() => {
                 if (!wbFabric || !container) return;
-                wbFabric.setWidth(container.offsetWidth);
-                wbFabric.setHeight(container.offsetHeight);
-                wbFabric.renderAll();
+                wbFabric.setDimensions({ width: container.offsetWidth, height: container.offsetHeight });
+                if (wbFabric._applyDPR) wbFabric._applyDPR();
+                wbFabric.requestRenderAll();
             });
             window._wbResizeObserver.observe(container);
 
@@ -3490,6 +3523,7 @@
 
         function updateWbBrush() {
             if (!wbFabric) return;
+            const zoom = wbFabric.getZoom() || 1;
 
             // Always recreate the brush fresh — guarantees clean state on every mode switch
             wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
@@ -3508,14 +3542,15 @@
             } else if (wbMode === 'erase') {
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = '#111111';
-                wbFabric.freeDrawingBrush.width = wbSize * 4;
+                // Eraser screen-size stays constant regardless of zoom
+                wbFabric.freeDrawingBrush.width = (wbSize * 4) / zoom;
                 wbFabric.freeDrawingBrush.decimate = 1;
                 wbFabric.freeDrawingCursor = 'cell';
             } else {
-                // draw
+                // draw — stroke screen-size is constant; canvas coords scale with zoom
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = wbColor;
-                wbFabric.freeDrawingBrush.width = wbSize * 2;
+                wbFabric.freeDrawingBrush.width = (wbSize * 2) / zoom;
                 wbFabric.freeDrawingBrush.decimate = 1;
                 wbFabric.freeDrawingCursor = 'crosshair';
             }
