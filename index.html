@@ -10,13 +10,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <style>
         :root {
             --primary: #FF0000;
             --bg: #ffffff;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg: #ffffff;
             --text: #1e293b;
             --text-muted: #64748b;
             --success: #16a34a;
@@ -71,8 +72,8 @@
             border-radius: 100px;
             font-size: 0.7rem;
             font-weight: 600;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: 1px solid #2a2a2a;
             margin-top: 5px;
         }
 
@@ -123,8 +124,8 @@
             width: 110px;
             height: 160px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px #1a1a1a;
+            border: 1px solid #333333;
             cursor: grab;
         }
 
@@ -164,13 +165,12 @@
             position: absolute;
             bottom: 15px;
             left: 15px;
-            background: rgba(0, 0, 0, 0.4);
+            background: #1a1a1a;
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 0.7rem;
             color: white;
             z-index: 5;
-            backdrop-filter: blur(4px);
         }
 
         .controls-overlay {
@@ -181,7 +181,7 @@
             justify-content: center;
             gap: 25px;
             z-index: 1100;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-top: 1px solid #1a1a1a;
         }
 
         .btn-circle {
@@ -196,9 +196,9 @@
             background: #f1f5f9;
             color: #1e293b;
             cursor: pointer;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid #1a1a1a;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px #1a1a1a;
         }
 
         .btn-circle.active {
@@ -232,9 +232,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #1a1a1a;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -250,14 +248,12 @@
         }
 
         .modal-card {
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: #0f0f0f;
             padding: 35px;
             border-radius: 28px;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px #1a1a1a;
             border: 2px solid var(--primary);
             text-align: center;
             transform: scale(0.9);
@@ -278,16 +274,16 @@
         }
 
         .id-section {
-            background: rgba(255, 255, 255, 0.05);
+            background: transparent;
             padding: 18px;
             border-radius: 16px;
             margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #2a2a2a;
         }
 
         .id-label {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
+            color: #999999;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin-bottom: 8px;
@@ -310,7 +306,7 @@
         .input-group label {
             display: block;
             font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
+            color: #aaaaaa;
             margin-bottom: 10px;
             padding-left: 5px;
         }
@@ -319,8 +315,8 @@
             width: 100%;
             padding: 14px 18px;
             border-radius: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #2a2a2a;
+            background: transparent;
             font-size: 1rem;
             transition: all 0.2s ease;
             outline: none;
@@ -329,7 +325,7 @@
 
         .join-input:focus {
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.2);
         }
 
@@ -356,9 +352,9 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.5);
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #999999;
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -370,7 +366,7 @@
         }
 
         .modal-close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             color: #fff;
         }
 
@@ -388,16 +384,14 @@
         }
 
         .toast {
-            background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: #1e1e1e;
             color: white;
             padding: 12px 24px;
             border-radius: 100px;
             font-size: 0.9rem;
             font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 24px #1a1a1a;
+            border: 1px solid #2a2a2a;
             animation: toastSlideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
             display: flex;
             align-items: center;
@@ -460,15 +454,13 @@
             top: 20px;
             right: 20px;
             z-index: 50;
-            background: rgba(15, 15, 15, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
             padding: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px #1a1a1a;
             transition: transform 0.1s;
             resize: both;
             overflow: hidden;
@@ -484,7 +476,7 @@
             margin-bottom: 8px;
             cursor: grab;
             user-select: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #2a2a2a;
             padding-bottom: 8px;
         }
 
@@ -493,7 +485,7 @@
         }
 
         .ribbon-drag-handle {
-            color: rgba(255, 255, 255, 0.5);
+            color: #999999;
             display: flex;
             align-items: center;
         }
@@ -506,7 +498,7 @@
         .ribbon-btn {
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.7);
+            color: #bbbbbb;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -517,7 +509,7 @@
         }
 
         .ribbon-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             color: white;
         }
 
@@ -555,7 +547,7 @@
             height: 100px;
             width: 160px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #2a2a2a;
         }
 
         .video-ribbon.vertical .video-wrapper:not(.pinned) {
@@ -566,10 +558,8 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
             color: white;
             width: 32px;
             height: 32px;
@@ -598,15 +588,10 @@
             font-size: 18px;
         }
 
-        /* Whiteboard Styles */
-        #whiteboard-tile-canvas {
-            width: 4000px;
-            height: 4000px;
-            max-width: none;
-            max-height: none;
-            display: block;
-            cursor: crosshair;
-            background: transparent;
+        /* Whiteboard (Fabric.js) Canvas Styles */
+        #wb-canvas-container canvas,
+        #wb-canvas-container .upper-canvas {
+            touch-action: none !important;
         }
 
         .wb-clear-btn {
@@ -614,10 +599,8 @@
             bottom: 15px;
             right: 52px;
             /* sits left of the pin-btn */
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
             color: white;
             width: 32px;
             height: 32px;
@@ -642,14 +625,12 @@
             right: 20px;
             width: 320px;
             height: 450px;
-            background: rgba(18, 18, 18, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #121212;
+            border: 1px solid #2a2a2a;
             border-radius: 16px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 12px 40px #1a1a1a;
             z-index: 1200;
             display: none;
             resize: both;
@@ -669,7 +650,7 @@
 
         .chat-header {
             padding: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid transparent;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -723,18 +704,18 @@
         }
 
         .chat-message.me .message-sender {
-            color: rgba(255, 255, 255, 0.6);
+            color: #aaaaaa;
             opacity: 1;
         }
 
         .chat-message.me .message-time {
-            color: rgba(255, 255, 255, 0.5);
+            color: #999999;
             opacity: 1;
         }
 
         .chat-message.other {
             align-self: flex-start;
-            background: rgba(255, 255, 255, 0.08);
+            background: transparent;
             color: rgba(255, 255, 255, 0.9);
             border-bottom-left-radius: 2px;
         }
@@ -755,7 +736,7 @@
 
         .chat-input-area {
             padding: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid transparent;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -763,9 +744,9 @@
 
         .chat-recipient-select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: transparent;
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #2a2a2a;
             border-radius: 8px;
             padding: 6px 10px;
             font-family: inherit;
@@ -799,8 +780,8 @@
 
         .chat-input {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: 1px solid #2a2a2a;
             border-radius: 8px;
             padding: 8px 12px;
             color: white;
@@ -811,7 +792,7 @@
         .chat-input:focus {
             outline: none;
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.08);
+            background: transparent;
         }
 
         .chat-send-btn {
@@ -838,7 +819,7 @@
         }
 
         .icon-action-btn {
-            background: rgba(255, 255, 255, 0.08);
+            background: transparent;
             border: none;
             border-radius: 8px;
             color: white;
@@ -851,7 +832,7 @@
         }
 
         .icon-action-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: #2e2e2e;
             transform: translateY(-1px);
         }
 
@@ -864,16 +845,16 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: transparent;
+            border: 1px solid transparent;
             border-radius: 12px;
             margin-bottom: 8px;
             transition: all 0.2s ease;
         }
 
         .participant-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border-color: #2a2a2a;
         }
 
         #chat-btn.has-new::after {
@@ -889,16 +870,14 @@
         /* Enhanced Whiteboard Toolbar */
         .wb-toolbar {
             position: absolute;
-            top: 15px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             height: 60px;
             max-width: 90%;
-            background: rgba(18, 18, 18, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #121212;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #2a2a2a;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -908,7 +887,7 @@
             gap: 15px;
             z-index: 100;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 32px #1a1a1a;
             white-space: nowrap;
         }
 
@@ -916,9 +895,9 @@
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid #2a2a2a;
+            background: transparent;
+            color: #bbbbbb;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -927,7 +906,7 @@
         }
 
         .wb-tool-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             color: white;
             transform: translateY(-2px);
         }
@@ -939,10 +918,44 @@
             box-shadow: 0 0 15px var(--primary);
         }
 
+        .wb-laser-pointer {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff4757;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 10px #ff4757, 0 0 20px #ff4757, 0 0 30px rgba(255, 71, 87, 0.5);
+            transition: opacity 0.2s ease-out;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes laser-pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .wb-laser-pointer {
+            animation: laser-pulse 1.5s infinite ease-in-out;
+        }
+
         .wb-divider {
             width: 1px;
             height: 24px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             flex-shrink: 0;
         }
 
@@ -957,7 +970,7 @@
             height: 24px;
             border-radius: 50%;
             cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid #333333;
             transition: all 0.2s;
             flex-shrink: 0;
         }
@@ -970,7 +983,7 @@
         .wb-color-swatch.active {
             transform: scale(1.25);
             border-color: white;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px #999999;
         }
 
         .video-wrapper.whiteboard-wrapper canvas {
@@ -997,16 +1010,16 @@
             appearance: slider-horizontal;
             width: 80px;
             height: 8px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             border-radius: 4px;
             outline: none;
             cursor: pointer;
         }
 
         .chat-attach-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a2a;
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid #333333;
             border-radius: 8px;
             padding: 8px;
             cursor: pointer;
@@ -1017,12 +1030,12 @@
         }
 
         .chat-attach-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: #333333;
         }
 
         .file-offer-box {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: 1px solid #2a2a2a;
             border-radius: 6px;
             padding: 10px;
             margin-top: 5px;
@@ -1063,11 +1076,9 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: #0f0f0f;
             border-left: 4px solid var(--primary);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 15px #1a1a1a;
             padding: 12px 20px;
             border-radius: 8px;
             color: white;
@@ -1089,7 +1100,7 @@
         }
 
         .progress-circle .bg {
-            stroke: rgba(255, 255, 255, 0.1);
+            stroke: #2a2a2a;
         }
 
         .progress-circle .fill {
@@ -1107,13 +1118,11 @@
             align-items: center;
             gap: 14px;
             z-index: 2000;
-            background: rgba(18, 18, 18, 0.4);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #121212;
             padding: 8px 18px;
             border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2a2a2a;
+            box-shadow: 0 8px 32px #1a1a1a;
             pointer-events: none;
             user-select: none;
             transition: opacity 0.3s ease;
@@ -1124,7 +1133,7 @@
             height: 36px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border: 1.5px solid #333333;
             background: #fff;
         }
 
@@ -1143,7 +1152,7 @@
             left: 10px;
             padding: 8px 15px;
             gap: 5px;
-            background: rgba(18, 18, 18, 0.9);
+            background: #121212;
             z-index: 2200;
             flex-direction: column;
             align-items: flex-start;
@@ -1177,7 +1186,7 @@
         .mobile-video-toggle-btn {
             display: none;
             position: absolute;
-            background: rgba(0, 0, 0, 0.6);
+            background: #1a1a1a;
             color: #fff;
             border: none;
             border-radius: 50%;
@@ -1187,7 +1196,7 @@
             align-items: center;
             justify-content: center;
             transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 12px #1a1a1a;
             z-index: 2500;
         }
 
@@ -1210,16 +1219,14 @@
             top: auto !important;
             width: auto !important;
             max-width: 90vw !important;
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: #0f0f0f;
             padding: 10px 15px;
             border-radius: 50px;
             gap: 10px;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid #2e2e2e;
             display: flex !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 40px #1a1a1a;
             z-index: 2200;
         }
 
@@ -1238,9 +1245,9 @@
             top: auto !important;
             border-radius: 24px 24px 0 0 !important;
             transform: none !important;
-            box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8) !important;
+            box-shadow: 0 -10px 50px #1a1a1a !important;
             z-index: 2200 !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #2a2a2a;
         }
 
         body.is-mobile .video-grid.in-call #local-video-container {
@@ -1265,14 +1272,14 @@
             height: auto !important;
             border-radius: 0 !important;
             border: none !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-bottom: 1px solid #2a2a2a !important;
             background: rgba(10, 10, 10, 0.8) !important;
             transform: none !important;
             resize: none !important;
             padding: 8px !important;
             margin: 0 !important;
             z-index: 2000 !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 20px #1a1a1a;
         }
 
         body.is-mobile .video-ribbon-header {
@@ -1324,11 +1331,10 @@
             max-width: 360px !important;
             height: auto !important;
             padding: 8px 15px !important;
-            background: rgba(15, 15, 15, 0.9) !important;
-            backdrop-filter: blur(20px) !important;
+            background: #0f0f0f !important;
             border-radius: 40px !important;
             /* Pill style */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid #2a2a2a !important;
             overflow-x: auto !important;
             white-space: nowrap !important;
             justify-content: flex-start !important;
@@ -1337,7 +1343,7 @@
             z-index: 1800 !important;
             scrollbar-width: none;
             display: flex !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+            box-shadow: 0 8px 32px #1a1a1a !important;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -1401,7 +1407,7 @@
                 left: 0 !important;
                 right: auto !important;
                 border-left: none !important;
-                border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-right: 1px solid #2a2a2a !important;
                 border-bottom: none !important;
             }
 
@@ -1480,8 +1486,6 @@
         <div id="toast-container"></div>
     </div>
 
-    <!-- Hidden resources -->
-    <canvas id="whiteboard-tile-canvas"></canvas>
 
 
     <!-- Participants Overlay -->
@@ -1665,29 +1669,40 @@
         let sharingToast = null;
         let pinnedWrapperId = null;
 
-        // ── Whiteboard ────────────────────────────────────────────────────────────
-        const wbCanvas = document.getElementById('whiteboard-tile-canvas');
-        const wbCtx = wbCanvas.getContext('2d');
-        let wbDrawing = false;
-        let wbLastX = 0, wbLastY = 0;
+        // ── Whiteboard (Fabric.js) ─────────────────────────────────────────────────
         let wbActive = false;
-
-        // State for enhanced whiteboard
+        let wbFabric = null;          // fabric.Canvas instance
+        let wbCanvas = null;          // the raw DOM canvas (set after Fabric init)
         let wbColor = '#ffffff';
         let wbSize = 3;
-        let wbMode = 'draw'; // 'draw', 'erase', 'pan'
-        let wbOffsetX = -2000 + window.innerWidth / 2;
-        let wbOffsetY = -2000 + window.innerHeight / 2;
+        let wbMode = 'draw';          // 'draw', 'erase', 'pan'
+        let wbOffsetX = 0;
+        let wbOffsetY = 0;
         let isPanning = false;
 
         function updateWbCursor() {
-            wbCanvas.className = '';
-            wbCanvas.style.cursor = 'none';
+            if (!wbFabric) return;
+            if (wbMode === 'pan') {
+                wbFabric.defaultCursor = 'grab';
+                wbFabric.hoverCursor = 'grab';
+            } else if (wbMode === 'erase') {
+                wbFabric.freeDrawingCursor = 'cell';
+            } else if (wbMode === 'laser') {
+                wbFabric.freeDrawingCursor = 'none';
+            } else {
+                wbFabric.freeDrawingCursor = 'crosshair';
+            }
+            // Cleanup local laser dot if not in laser mode
+            if (wbMode !== 'laser') {
+                const dot = document.getElementById('wb-local-laser');
+                if (dot) dot.style.opacity = '0';
+                setTimeout(() => { if (dot) dot.remove(); }, 200);
+            }
         }
 
         // ── Text Tool Logic ──
         let wbTextBoxes = new Map();
-        let wbStrokes = [];
+        let wbStrokes = [];           // kept for .satvik file compat
         let wbImages = new Map();
         let showCursors = true;
         let lastCursorBroadcast = 0;
@@ -1695,6 +1710,7 @@
         let activeContextMenuId = null;
         let activeScaleHandle = null;
         let activeRotateHandle = null;
+        let laserData = new Map(); // id -> { points: [{x,y,t},...], name: '...' }
 
         function createTextBox(id, x, y, text, color, fontSize, fontFamily, isBold, isItalic, rotation = 0, broadcast = true) {
             if (wbTextBoxes.has(id)) return wbTextBoxes.get(id);
@@ -2349,15 +2365,15 @@
         // ────────────────────────────
 
         function resizeCanvas() {
-            if (wbCanvas.width !== 4000) {
-                wbCanvas.width = 4000;
-                wbCanvas.height = 4000;
-                wbCtx.clearRect(0, 0, 4000, 4000);
+            // Fabric.js handles its own sizing via ResizeObserver in initFabricWhiteboard
+            if (wbFabric) {
+                const container = document.getElementById('wb-canvas-container');
+                if (container) {
+                    wbFabric.setWidth(container.offsetWidth);
+                    wbFabric.setHeight(container.offsetHeight);
+                    wbFabric.renderAll();
+                }
             }
-            wbCtx.strokeStyle = '#ffffff';
-            wbCtx.lineWidth = 3;
-            wbCtx.lineCap = 'round';
-            wbCtx.lineJoin = 'round';
         }
 
         function toggleWhiteboard(broadcast = true) {
@@ -2377,6 +2393,7 @@
                 wbBtn.classList.remove('active');
                 refreshLayout();
                 if (broadcast) broadcastWhiteboard({ type: 'wb-close' });
+                laserData.clear();
             } else {
                 // Build wrapper tile
                 const wrapper = document.createElement('div');
@@ -2397,13 +2414,13 @@
                 selectBtn.className = `wb-tool-btn ${wbMode === 'select' ? 'active' : ''}`;
                 selectBtn.title = 'Select';
                 selectBtn.innerHTML = '<span class="material-symbols-rounded">arrow_selector_tool</span>';
-                selectBtn.onclick = () => { wbMode = 'select'; updateWbCursor(); updateToolbarUI(); };
+                selectBtn.onclick = () => { wbMode = 'select'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const penBtn = document.createElement('button');
                 penBtn.className = `wb-tool-btn ${wbMode === 'draw' ? 'active' : ''}`;
                 penBtn.title = 'Pen';
                 penBtn.innerHTML = '<span class="material-symbols-rounded">edit</span>';
-                penBtn.onclick = () => { wbMode = 'draw'; updateWbCursor(); updateToolbarUI(); };
+                penBtn.onclick = () => { wbMode = 'draw'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const textBtn = document.createElement('button');
                 textBtn.className = `wb-tool-btn ${wbMode === 'text' ? 'active' : ''}`;
@@ -2411,6 +2428,7 @@
                 textBtn.innerHTML = '<span class="material-symbols-rounded">text_fields</span>';
                 textBtn.onclick = () => {
                     wbMode = 'select';
+                    updateWbBrush();
                     updateToolbarUI();
                     const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                     const cx = -wbOffsetX + window.innerWidth / 2 - 50;
@@ -2424,13 +2442,19 @@
                 eraserBtn.className = `wb-tool-btn ${wbMode === 'erase' ? 'active' : ''}`;
                 eraserBtn.title = 'Eraser';
                 eraserBtn.innerHTML = '<span class="material-symbols-rounded">ink_eraser</span>';
-                eraserBtn.onclick = () => { wbMode = 'erase'; updateWbCursor(); updateToolbarUI(); };
+                eraserBtn.onclick = () => { wbMode = 'erase'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
+
+                const laserBtn = document.createElement('button');
+                laserBtn.className = `wb-tool-btn ${wbMode === 'laser' ? 'active' : ''}`;
+                laserBtn.title = 'Laser Pointer';
+                laserBtn.innerHTML = '<span class="material-symbols-rounded">flare</span>';
+                laserBtn.onclick = () => { wbMode = 'laser'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const panBtn = document.createElement('button');
                 panBtn.className = `wb-tool-btn ${wbMode === 'pan' ? 'active' : ''}`;
                 panBtn.title = 'Pan';
                 panBtn.innerHTML = '<span class="material-symbols-rounded">pan_tool</span>';
-                panBtn.onclick = () => { wbMode = 'pan'; updateWbCursor(); updateToolbarUI(); };
+                panBtn.onclick = () => { wbMode = 'pan'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const imageBtn = document.createElement('button');
                 imageBtn.className = `wb-tool-btn`;
@@ -2448,7 +2472,7 @@
                     const swatch = document.createElement('div');
                     swatch.className = `wb-color-swatch ${wbColor === c ? 'active' : ''}`;
                     swatch.style.backgroundColor = c;
-                    swatch.onclick = () => { wbColor = c; if (wbMode === 'erase') wbMode = 'draw'; updateToolbarUI(); };
+                    swatch.onclick = () => { wbColor = c; if (wbMode === 'erase') wbMode = 'draw'; updateWbBrush(); updateToolbarUI(); };
                     colorGroup.appendChild(swatch);
                 });
 
@@ -2458,6 +2482,7 @@
                 colorPicker.oninput = (e) => {
                     wbColor = e.target.value;
                     if (wbMode === 'erase') wbMode = 'draw';
+                    updateWbBrush();
                     updateToolbarUI();
                 };
                 colorGroup.appendChild(colorPicker);
@@ -2482,7 +2507,7 @@
                 sizeSlider.max = '25';
                 sizeSlider.value = wbSize;
                 sizeSlider.className = 'wb-size-slider';
-                sizeSlider.oninput = (e) => { wbSize = parseInt(e.target.value); };
+                sizeSlider.oninput = (e) => { wbSize = parseInt(e.target.value); updateWbBrush(); };
                 sizeContainer.appendChild(sizeSlider);
 
                 const divider3 = document.createElement('div');
@@ -2527,6 +2552,7 @@
                 toolbar.appendChild(penBtn);
                 toolbar.appendChild(textBtn);
                 toolbar.appendChild(eraserBtn);
+                toolbar.appendChild(laserBtn);
                 toolbar.appendChild(panBtn);
                 toolbar.appendChild(imageBtn);
                 toolbar.appendChild(divider1);
@@ -2592,25 +2618,11 @@
                     showToast('Packaging whiteboard...', 'info');
 
                     const zip = new JSZip();
-
-                    const xmlDoc = document.implementation.createDocument(null, "whiteboard");
-                    const root = xmlDoc.documentElement;
-
-                    const strokesNode = xmlDoc.createElement("strokes");
-                    for (const s of wbStrokes) {
-                        const sn = xmlDoc.createElement("segment");
-                        sn.setAttribute("x", s.x0);
-                        sn.setAttribute("y", s.y0);
-                        sn.setAttribute("px", s.x1);
-                        sn.setAttribute("py", s.y1);
-                        sn.setAttribute("c", s.color);
-                        sn.setAttribute("s", s.size);
-                        strokesNode.appendChild(sn);
-                    }
-                    root.appendChild(strokesNode);
-
-                    const elementsNode = xmlDoc.createElement("elements");
-                    root.appendChild(elementsNode);
+                    const state = {
+                        version: '2.0',
+                        fabric: wbFabric ? wbFabric.toJSON() : null,
+                        elements: []
+                    };
 
                     const layer = document.getElementById('wb-text-layer');
                     if (layer) {
@@ -2620,7 +2632,6 @@
                         for (const child of children) {
                             const textBox = child.querySelector('.wb-text-box');
                             const imgBox = child.querySelector('.wb-image-box');
-
                             const left = parseFloat(child.style.left) || 0;
                             const top = parseFloat(child.style.top) || 0;
                             const rotation = child.dataset.rotation || 0;
@@ -2629,67 +2640,53 @@
 
                             if (textBox) {
                                 const id = textBox.id.replace('wb-txt-', '');
-                                const state = wbTextBoxes.get(id);
-                                if (state) {
-                                    const node = xmlDoc.createElement("text");
-                                    node.setAttribute("id", id);
-                                    node.setAttribute("x", left);
-                                    node.setAttribute("y", top);
-                                    node.setAttribute("color", state.color);
-                                    node.setAttribute("fontSize", state.fontSize);
-                                    node.setAttribute("fontFamily", state.fontFamily);
-                                    node.setAttribute("isBold", state.isBold);
-                                    node.setAttribute("isItalic", state.isItalic);
-                                    node.setAttribute("rotation", rotation);
-
-                                    const cdata = xmlDoc.createCDATASection(textBox.innerText);
-                                    node.appendChild(cdata);
-
-                                    elementsNode.appendChild(node);
+                                const tState = wbTextBoxes.get(id);
+                                if (tState) {
+                                    state.elements.push({
+                                        type: 'text',
+                                        id, x: left, y: top,
+                                        text: textBox.innerText,
+                                        color: tState.color,
+                                        fontSize: tState.fontSize,
+                                        fontFamily: tState.fontFamily,
+                                        isBold: tState.isBold,
+                                        isItalic: tState.isItalic,
+                                        rotation
+                                    });
                                 }
                             } else if (imgBox) {
                                 const id = imgBox.id.replace('wb-image-', '');
-                                const state = wbImages.get(id);
-                                if (state) {
+                                const iState = wbImages.get(id);
+                                if (iState) {
                                     imageCounter++;
                                     const imgFilename = `images/img_${imageCounter}.png`;
-
-                                    let base64Data = state.src;
-                                    if (base64Data.startsWith('data:')) {
-                                        base64Data = base64Data.split(',')[1];
-                                    }
-
+                                    let base64Data = iState.src;
+                                    if (base64Data.startsWith('data:')) base64Data = base64Data.split(',')[1];
                                     zip.file(imgFilename, base64Data, { base64: true });
 
-                                    const node = xmlDoc.createElement("image");
-                                    node.setAttribute("id", id);
-                                    node.setAttribute("x", left);
-                                    node.setAttribute("y", top);
-                                    node.setAttribute("width", width || state.width);
-                                    node.setAttribute("height", height || state.height);
-                                    node.setAttribute("rotation", rotation);
-                                    node.setAttribute("src", imgFilename);
-
-                                    elementsNode.appendChild(node);
+                                    state.elements.push({
+                                        type: 'image',
+                                        id, x: left, y: top,
+                                        width: width || iState.width,
+                                        height: height || iState.height,
+                                        rotation,
+                                        src: imgFilename
+                                    });
                                 }
                             }
                         }
                     }
 
-                    const serializer = new XMLSerializer();
-                    const xmlString = serializer.serializeToString(xmlDoc);
-                    zip.file("metadata.xml", xmlString);
-
+                    zip.file("whiteboard.json", JSON.stringify(state));
                     const content = await zip.generateAsync({ type: "blob" });
                     const url = URL.createObjectURL(content);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `meeting_board_${Date.now()}.satvik`;
+                    a.download = `whiteboard_${new Date().toISOString().slice(0, 10)}.satvik`;
                     document.body.appendChild(a);
                     a.click();
-                    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
-
-                    showToast('Whiteboard exported successfully!', 'success');
+                    document.body.removeChild(a);
+                    showToast('Whiteboard saved!', 'success');
                 }
 
                 async function loadWhiteboard(e) {
@@ -2720,75 +2717,84 @@
                     showToast('Unpacking .satvik file...', 'info');
                     try {
                         const zip = await JSZip.loadAsync(file);
-
-                        const xmlFile = zip.file("metadata.xml");
-                        if (!xmlFile) throw new Error("metadata.xml missing");
-
-                        const xmlString = await xmlFile.async("string");
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+                        const jsonFile = zip.file("whiteboard.json");
 
                         clearWhiteboard(true);
 
-                        const root = xmlDoc.documentElement;
-                        if (!root || root.tagName !== 'whiteboard') throw new Error("Invalid .satvik format");
+                        if (jsonFile) {
+                            // NEW JSON format
+                            const json = JSON.parse(await jsonFile.async("string"));
 
-                        const strokesNode = root.querySelectorAll("strokes > segment");
-                        const newStrokes = [];
-                        for (const sn of strokesNode) {
-                            newStrokes.push({
-                                x0: parseFloat(sn.getAttribute("x")),
-                                y0: parseFloat(sn.getAttribute("y")),
-                                x1: parseFloat(sn.getAttribute("px")),
-                                y1: parseFloat(sn.getAttribute("py")),
-                                color: sn.getAttribute("c"),
-                                size: parseFloat(sn.getAttribute("s"))
-                            });
-                        }
+                            // 1. Restore Fabric.js canvas
+                            if (wbFabric && json.fabric) {
+                                wbFabric.loadFromJSON(json.fabric, () => {
+                                    wbFabric.renderAll();
+                                    broadcastWhiteboard({ type: 'wb-fabric-load', json: json.fabric });
+                                });
+                            }
 
-                        wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
-                        wbStrokes = [];
-                        for (const s of newStrokes) {
-                            drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false);
-                        }
-
-                        broadcastWhiteboard({ type: 'wb-strokes-load', strokes: newStrokes });
-
-                        const elements = root.querySelectorAll("elements > *");
-                        for (const el of elements) {
-                            const id = el.getAttribute("id");
-                            const x = parseFloat(el.getAttribute("x"));
-                            const y = parseFloat(el.getAttribute("y"));
-                            const rotation = parseFloat(el.getAttribute("rotation")) || 0;
-
-                            if (el.tagName === "text") {
-                                const color = el.getAttribute("color");
-                                const fontSize = parseFloat(el.getAttribute("fontSize"));
-                                const fontFamily = el.getAttribute("fontFamily");
-                                const isBold = el.getAttribute("isBold") === "true";
-                                const isItalic = el.getAttribute("isItalic") === "true";
-
-                                const textContent = el.textContent;
-
-                                createTextBox(id, x, y, textContent, color, fontSize, fontFamily, isBold, isItalic, rotation, true);
-
-                            } else if (el.tagName === "image") {
-                                const width = parseFloat(el.getAttribute("width"));
-                                const height = parseFloat(el.getAttribute("height"));
-                                const src = el.getAttribute("src");
-
-                                const imgZipFile = zip.file(src);
-                                if (imgZipFile) {
-                                    const imgBase64 = await imgZipFile.async("base64");
-                                    const dataUrl = "data:image/png;base64," + imgBase64;
-
-                                    createImageBox(id, x, y, dataUrl, width, height, rotation, true);
+                            // 2. Restore Text/Images
+                            for (const el of json.elements) {
+                                if (el.type === 'text') {
+                                    createTextBox(el.id, el.x, el.y, el.text, el.color, el.fontSize, el.fontFamily, el.isBold, el.isItalic, el.rotation, true);
+                                } else if (el.type === 'image') {
+                                    const imgFile = zip.file(el.src);
+                                    if (imgFile) {
+                                        const base64 = await imgFile.async("base64");
+                                        createImageBox(el.id, el.x, el.y, `data:image/png;base64,${base64}`, el.width, el.height, el.rotation, true);
+                                    }
                                 }
                             }
-                        }
+                            showToast('Whiteboard loaded (v2)!', 'success');
+                        } else {
+                            // Legacy XML format
+                            const xmlFile = zip.file("metadata.xml");
+                            if (!xmlFile) throw new Error("metadata.xml missing");
 
-                        showToast('Whiteboard loaded perfectly.', 'success');
+                            const xmlString = await xmlFile.async("string");
+                            const parser = new DOMParser();
+                            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+                            const root = xmlDoc.documentElement;
+
+                            const strokesNode = root.querySelectorAll("strokes > segment");
+                            const segments = [];
+                            for (const sn of strokesNode) {
+                                segments.push({
+                                    x0: parseFloat(sn.getAttribute("x")),
+                                    y0: parseFloat(sn.getAttribute("y")),
+                                    x1: parseFloat(sn.getAttribute("px")),
+                                    y1: parseFloat(sn.getAttribute("py")),
+                                    color: sn.getAttribute("c"),
+                                    size: parseFloat(sn.getAttribute("s"))
+                                });
+                            }
+                            // Convert segments to Fabric paths or just draw them
+                            if (segments.length > 0) {
+                                segments.forEach(s => drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false));
+                                if (wbFabric) broadcastWhiteboard({ type: 'wb-strokes-load', strokes: segments });
+                            }
+
+                            const elements = root.querySelectorAll("elements > *");
+                            for (const el of elements) {
+                                const id = el.getAttribute("id");
+                                const x = parseFloat(el.getAttribute("x"));
+                                const y = parseFloat(el.getAttribute("y"));
+                                const rot = parseFloat(el.getAttribute("rotation") || 0);
+
+                                if (el.tagName === 'text') {
+                                    createTextBox(id, x, y, el.textContent, el.getAttribute("color"), parseFloat(el.getAttribute("fontSize")), el.getAttribute("fontFamily"), el.getAttribute("isBold") === 'true', el.getAttribute("isItalic") === 'true', rot, true);
+                                } else if (el.tagName === 'image') {
+                                    const imgFile = zip.file(el.getAttribute("src"));
+                                    if (imgFile) {
+                                        const base64 = await imgFile.async("base64");
+                                        createImageBox(id, x, y, `data:image/png;base64,${base64}`, el.getAttribute("width"), el.getAttribute("height"), rot, true);
+                                    }
+                                }
+                            }
+                            showToast('Whiteboard loaded (Legacy)!', 'success');
+                        }
                     } catch (err) {
+                        console.error(err);
                         showToast('Failed to load: ' + err.message, 'error');
                     }
                 }
@@ -2798,6 +2804,7 @@
                     penBtn.classList.toggle('active', wbMode === 'draw');
                     textBtn.classList.toggle('active', wbMode === 'text');
                     eraserBtn.classList.toggle('active', wbMode === 'erase');
+                    laserBtn.classList.toggle('active', wbMode === 'laser');
                     panBtn.classList.toggle('active', wbMode === 'pan');
                     colorGroup.querySelectorAll('.wb-color-swatch:not(.custom-swatch)').forEach(s => {
                         const swatchColor = RGBToHex(s.style.backgroundColor);
@@ -2816,6 +2823,9 @@
                     document.querySelectorAll('.wb-image-box, .wb-text-box, .wb-rotate-handle').forEach(el => {
                         el.style.pointerEvents = (wbMode === 'select') ? 'auto' : 'none';
                     });
+
+                    const fc = document.getElementById('wb-canvas-container');
+                    if (fc) fc.style.pointerEvents = (wbMode === 'select') ? 'none' : 'auto';
                 }
 
                 function RGBToHex(rgb) {
@@ -2845,6 +2855,14 @@
                     textLayer.style.pointerEvents = 'none';
                     wbTextBoxes.forEach(box => textLayer.appendChild(box.parentElement));
                     wbImages.forEach(img => textLayer.appendChild(img.parentElement));
+                }
+                let laserCanvas = document.getElementById('wb-laser-canvas');
+                if (!laserCanvas) {
+                    laserCanvas = document.createElement('canvas');
+                    laserCanvas.id = 'wb-laser-canvas';
+                    laserCanvas.width = 4000;
+                    laserCanvas.height = 4000;
+                    laserCanvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none; z-index:5;';
                 }
                 let backLayer = document.getElementById('wb-back-layer');
                 if (!backLayer) {
@@ -2903,17 +2921,26 @@
                     document.getElementById('wb-cursors-layer').style.display = showCursors ? 'block' : 'none';
                 };
 
+                if (document.body.classList.contains('is-mobile')) {
+                    cursorToggleBtn.style.display = 'none';
+                }
+
                 wrapper.style.backgroundColor = '#111111';
                 wrapper.style.zIndex = '0';
-                wbCanvas.style.pointerEvents = 'none';
-                wbCanvas.style.position = 'absolute';
-                wbCanvas.style.top = '0';
-                wbCanvas.style.left = '0';
-                wbCanvas.style.zIndex = '2';
-                if (textLayer) textLayer.style.zIndex = '1';
+                if (textLayer) textLayer.style.zIndex = '3';
+
+                // Fabric.js canvas lives in wb-canvas-container
+                let fabricContainer = document.getElementById('wb-canvas-container');
+                if (!fabricContainer) {
+                    fabricContainer = document.createElement('div');
+                    fabricContainer.id = 'wb-canvas-container';
+                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:4;touch-action:none;';
+                }
+
                 wrapper.appendChild(backLayer);
-                wrapper.appendChild(wbCanvas);
+                wrapper.appendChild(fabricContainer);
                 wrapper.appendChild(textLayer);
+                wrapper.appendChild(laserCanvas);
                 wrapper.appendChild(cursorsLayer);
                 wrapper.appendChild(cursorToggleBtn);
                 wrapper.appendChild(toolbar);
@@ -2927,29 +2954,23 @@
 
                 wbActive = true;
                 document.body.classList.add('wb-active');
-
                 wbBtn.classList.add('active');
                 refreshLayout();
-                setTimeout(() => {
-                    resizeCanvas();
-                    wbCanvas.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let tl = document.getElementById('wb-text-layer');
-                    if (tl) tl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let cl = document.getElementById('wb-cursors-layer');
-                    if (cl) cl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                }, 50);
-                if (broadcast) broadcastWhiteboard({ type: 'wb-open' });
 
-                // Observe size changes (e.g. pinning)
-                if (!wbCanvas._resizeObserver) {
-                    wbCanvas._resizeObserver = new ResizeObserver(resizeCanvas);
-                    wbCanvas._resizeObserver.observe(wrapper);
-                }
+                // Init Fabric.js after layout is settled
+                setTimeout(() => {
+                    initFabricWhiteboard();
+                }, 80);
+
+                if (broadcast) broadcastWhiteboard({ type: 'wb-open' });
             }
         }
 
         function clearWhiteboard(broadcast = true) {
-            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+            if (wbFabric) {
+                wbFabric.clear();
+                wbFabric.renderAll();
+            }
             wbStrokes = [];
             const textContainers = document.querySelectorAll('.wb-text-container');
             if (textContainers) textContainers.forEach(el => el.remove());
@@ -3134,7 +3155,6 @@
                 try {
                     conn.send({
                         type: 'file-chunk',
-                        transferId: transferId,
                         fileName: file.name,
                         fileType: file.type,
                         chunk: chunk,
@@ -3306,33 +3326,28 @@
         window.ClickChat = function () { toggleChat(); };
 
         function getPos(e) {
-            const r = wbCanvas.getBoundingClientRect();
+            // Get position relative to the Fabric canvas container
+            const container = document.getElementById('wb-canvas-container');
+            const r = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
             const src = e.touches ? e.touches[0] : e;
             return { x: src.clientX - r.left, y: src.clientY - r.top };
         }
 
+        // mousedown / touchstart: only handle text mode — Fabric.js handles draw/erase/pan internally
         window.addEventListener('mousedown', e => {
             if (!wbActive) return;
             if (e.target.closest('.wb-toolbar-container') || e.target.closest('.wb-toolbar') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
             if (e.target.closest('.wb-text-box') || e.target.closest('.wb-image-box') || e.target.closest('.wb-resize-handle') || e.target.closest('.wb-rotate-handle') || e.target.closest('.collaborator-cursor')) return;
 
-            if (wbMode === 'select') return;
-            if (wbMode === 'pan') {
-                isPanning = true;
-            } else if (wbMode === 'text') {
+            if (wbMode === 'text') {
                 const p = getPos(e);
                 const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                 const fSize = Math.max(16, wbSize * 5);
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
-
                 wbMode = 'select';
-                updateWbCursor();
+                updateWbCursor(); updateWbBrush();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
-            } else {
-                wbDrawing = true;
-                const p = getPos(e);
-                wbLastX = p.x; wbLastY = p.y;
             }
         });
         window.addEventListener('touchstart', e => {
@@ -3340,141 +3355,283 @@
             if (e.target.closest('.wb-toolbar-container') || e.target.closest('.wb-toolbar') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
             if (e.target.closest('.wb-text-box') || e.target.closest('.wb-image-box') || e.target.closest('.wb-resize-handle') || e.target.closest('.wb-rotate-handle') || e.target.closest('.collaborator-cursor')) return;
 
-            if (wbMode === 'select') return;
-            if (wbMode === 'pan') {
-                isPanning = true;
-            } else if (wbMode === 'text') {
+            if (wbMode === 'text') {
                 e.preventDefault();
                 const p = getPos(e);
                 const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                 const fSize = Math.max(16, wbSize * 5);
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
-
                 wbMode = 'select';
-                updateWbCursor();
+                updateWbCursor(); updateWbBrush();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
-            } else {
-                e.preventDefault();
-                wbDrawing = true;
-                const p = getPos(e);
-                wbLastX = p.x; wbLastY = p.y;
             }
         }, { passive: false });
 
-        function drawSegment(x0, y0, x1, y1, color, size, broadcast = true) {
-            wbStrokes.push({ x0, y0, x1, y1, color, size });
-            wbCtx.beginPath();
-            wbCtx.lineWidth = size || wbSize;
-            wbCtx.lineCap = 'round';
-            wbCtx.lineJoin = 'round';
-            const drawColor = color || wbColor;
-            if (drawColor === '#111111') {
-                wbCtx.globalCompositeOperation = 'destination-out';
-                wbCtx.strokeStyle = 'rgba(0,0,0,1)';
-            } else {
-                wbCtx.globalCompositeOperation = 'source-over';
-                wbCtx.strokeStyle = drawColor;
+        // ── Fabric.js Whiteboard Drawing Engine ─────────────────────────────────────
+        // Fabric.js handles all touch/mouse drawing internally with optimized smoothing.
+        // We just set freeDrawingBrush color/width and listen to path:created for sync.
+
+        function initFabricWhiteboard() {
+            const container = document.getElementById('wb-canvas-container');
+            if (!container) return;
+            if (wbFabric) { wbFabric.dispose(); wbFabric = null; }
+
+            // Create the canvas element inside the container
+            const canvasEl = document.createElement('canvas');
+            canvasEl.id = 'wb-fabric-canvas';
+            container.innerHTML = '';
+            container.appendChild(canvasEl);
+
+            const isMobile = document.body.classList.contains('is-mobile');
+            const dpr = window.devicePixelRatio || 1;
+            fabric.devicePixelRatio = dpr; // ensure Fabric uses the real DPR
+            wbFabric = new fabric.Canvas('wb-fabric-canvas', {
+                isDrawingMode: true,
+                backgroundColor: 'transparent',
+                selection: false,
+                enableRetinaScaling: true,
+                allowTouchScrolling: false,
+                renderOnAddRemove: false
+            });
+            const initW = container.offsetWidth || window.innerWidth;
+            const initH = container.offsetHeight || window.innerHeight;
+            wbFabric.setDimensions({ width: initW, height: initH });
+
+            // Force physical-pixel canvas buffer — guarantees crisp rendering on high-DPR phones.
+            // Fabric's enableRetinaScaling may not always fire correctly, so we override explicitly.
+            function applyDPR() {
+                const d = window.devicePixelRatio || 1;
+                const cw = wbFabric.width, ch = wbFabric.height;
+                [wbFabric.lowerCanvasEl, wbFabric.upperCanvasEl].forEach(el => {
+                    el.width = Math.round(cw * d);
+                    el.height = Math.round(ch * d);
+                    el.style.width = cw + 'px';
+                    el.style.height = ch + 'px';
+                    const ctx = el.getContext('2d');
+                    ctx.setTransform(d, 0, 0, d, 0, 0); // scale up: draw calls are in CSS px
+                });
             }
-            wbCtx.beginPath();
-            wbCtx.moveTo(x0, y0);
-            wbCtx.lineTo(x1, y1);
-            wbCtx.stroke();
-            if (broadcast) {
-                broadcastWhiteboard({ type: 'wb-draw', x0, y0, x1, y1, color: color || wbColor, size: size || wbSize });
+            applyDPR();
+            wbFabric._applyDPR = applyDPR; // store for ResizeObserver use
+
+            // Mobile video constraints already applied at stream acquisition
+            // Fabric PencilBrush setup
+            wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
+            wbFabric.freeDrawingBrush.color = wbColor;
+            wbFabric.freeDrawingBrush.width = wbSize * 2;
+            wbFabric.freeDrawingBrush.decimate = 1;
+
+            wbCanvas = wbFabric.upperCanvasEl; // for backward compat refs
+
+            // Broadcast the complete path to peers when a stroke is finished.
+            // In pan or laser mode, immediately remove the path so no ghost stroke appears.
+            wbFabric.on('path:created', (e) => {
+                if (wbMode === 'pan' || wbMode === 'laser') {
+                    // Discard any path accidentally created during pan/laser
+                    wbFabric.remove(e.path);
+                    wbFabric.renderAll();
+                    return;
+                }
+                const pathObj = e.path;
+                pathObj.selectable = false;
+                pathObj.evented = false;
+                const pathData = pathObj.toJSON();
+                broadcastWhiteboard({ type: 'wb-path', path: pathData });
+            });
+
+            // ── Pan / Zoom — all via native events on upperCanvasEl ───────────────
+            // Using native DOM events (not Fabric's abstracted events) gives reliable
+            // clientX/Y on both desktop and mobile touch. Capture phase fires BEFORE
+            // Fabric's bubble-phase draw code, so stopPropagation() cleanly blocks drawing.
+            const uc = wbFabric.upperCanvasEl;
+            let panActive = false, panPrevX = 0, panPrevY = 0;
+            let pinchDist = null;
+
+            // ── Wheel zoom (desktop) ──────────────────────────────────────────────
+            uc.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let zoom = wbFabric.getZoom();
+                zoom *= e.deltaY < 0 ? 1.1 : (1 / 1.1);
+                zoom = Math.max(0.05, Math.min(20, zoom));
+                const r = uc.getBoundingClientRect();
+                wbFabric.zoomToPoint(new fabric.Point(e.clientX - r.left, e.clientY - r.top), zoom);
+                wbFabric.requestRenderAll();
+                syncTextLayer();
+                updateWbBrush();
+            }, { passive: false });
+
+            // Sync wb-text-layer (images + text boxes) to match Fabric's viewportTransform
+            function syncTextLayer() {
+                const tl = document.getElementById('wb-text-layer');
+                const lc = document.getElementById('wb-laser-canvas');
+                if (!wbFabric) return;
+                const v = wbFabric.viewportTransform;
+                const matrix = `matrix(${v[0]},${v[1]},${v[2]},${v[3]},${v[4]},${v[5]})`;
+                if (tl) { tl.style.transformOrigin = '0 0'; tl.style.transform = matrix; }
+                if (lc) { lc.style.transformOrigin = '0 0'; lc.style.transform = matrix; }
+            }
+
+            // ── Pointer events for pan (desktop mouse + mobile touch unified) ─────
+            uc.addEventListener('pointerdown', (e) => {
+                if (wbMode !== 'pan' || e.isPrimary === false) return;
+                panActive = true;
+                panPrevX = e.clientX;
+                panPrevY = e.clientY;
+                uc.setPointerCapture(e.pointerId);
+                e.stopPropagation();  // prevent Fabric drawing this
+                e.preventDefault();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('pointermove', (e) => {
+                if (!panActive || pinchDist !== null) return;
+                const dx = e.clientX - panPrevX;
+                const dy = e.clientY - panPrevY;
+                panPrevX = e.clientX;
+                panPrevY = e.clientY;
+                wbFabric.relativePan(new fabric.Point(dx, dy));
+                wbFabric.requestRenderAll();
+                syncTextLayer();
+                e.stopPropagation();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('pointerup', (e) => {
+                if (!panActive) return;
+                try { uc.releasePointerCapture(e.pointerId); } catch (_) { }
+                panActive = false;
+                e.stopPropagation();
+            }, { capture: true });
+
+            uc.addEventListener('pointercancel', () => { panActive = false; }, { capture: true });
+
+            // ── Touch events for pinch zoom (supersedes pointer during 2-finger) ──
+            uc.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    pinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    panActive = false;  // cancel pan if 2nd finger lands mid-pan
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 2 || pinchDist === null) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const d = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                let zoom = wbFabric.getZoom() * (d / pinchDist);
+                zoom = Math.max(0.05, Math.min(20, zoom));
+                pinchDist = d;
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const r = uc.getBoundingClientRect();
+                wbFabric.zoomToPoint(new fabric.Point(midX - r.left, midY - r.top), zoom);
+                wbFabric.requestRenderAll();
+                syncTextLayer();
+                updateWbBrush();
+            }, { capture: true, passive: false });
+
+            uc.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) pinchDist = null;
+            }, { capture: true });
+
+
+            // Laser pointer move listener (broadcast and local display)
+            uc.addEventListener('pointermove', (e) => {
+                if (wbMode !== 'laser' || !wbActive) return;
+                const p = wbFabric.getPointer(e);
+                updatePeerLaser('local', p.x, p.y);
+                if (Date.now() - lastCursorBroadcast > 30) {
+                    broadcastWhiteboard({ type: 'wb-laser', x: p.x, y: p.y, name: myName });
+                    lastCursorBroadcast = Date.now();
+                }
+            }, { passive: true });
+
+            // Cursor broadcast (desktop only)
+            wbFabric.upperCanvasEl.addEventListener('mousemove', (e) => {
+                if (!wbActive || document.body.classList.contains('is-mobile') || wbMode === 'laser') return;
+                if (showCursors && Date.now() - lastCursorBroadcast > 40) {
+                    const p = wbFabric.getPointer(e);
+                    broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, name: myName, color: myColor });
+                    lastCursorBroadcast = Date.now();
+                }
+            });
+
+            // Resize Fabric canvas when container resizes
+            if (window._wbResizeObserver) window._wbResizeObserver.disconnect();
+            window._wbResizeObserver = new ResizeObserver(() => {
+                if (!wbFabric || !container) return;
+                wbFabric.setDimensions({ width: container.offsetWidth, height: container.offsetHeight });
+                if (wbFabric._applyDPR) wbFabric._applyDPR();
+                wbFabric.requestRenderAll();
+            });
+            window._wbResizeObserver.observe(container);
+
+            updateWbBrush();
+            log('Fabric whiteboard initialized');
+            renderLasers();
+        }
+
+        function updateWbBrush() {
+            if (!wbFabric) return;
+            const zoom = wbFabric.getZoom() || 1;
+
+            // Always recreate the brush fresh — guarantees clean state on every mode switch
+            wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
+
+            if (wbMode === 'pan' || wbMode === 'laser') {
+                // Keep isDrawingMode=true so Fabric's mouse:down/move/up events fire normally.
+                // Zero-width transparent brush = no visible ink; path:created discards the path.
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = 'rgba(0,0,0,0)';
+                wbFabric.freeDrawingBrush.width = 0;
+                wbFabric.freeDrawingCursor = (wbMode === 'laser') ? 'none' : 'grab';
+            } else if (wbMode === 'select') {
+                // Turn off drawing so touches reach the text/image layer above
+                wbFabric.isDrawingMode = false;
+                wbFabric.defaultCursor = 'default';
+            } else if (wbMode === 'erase') {
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = '#111111';
+                // Eraser screen-size stays constant regardless of zoom
+                wbFabric.freeDrawingBrush.width = (wbSize * 4) / zoom;
+                wbFabric.freeDrawingBrush.decimate = 1;
+                wbFabric.freeDrawingCursor = 'cell';
+            } else {
+                // draw — stroke screen-size is constant; canvas coords scale with zoom
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = wbColor;
+                wbFabric.freeDrawingBrush.width = (wbSize * 2) / zoom;
+                wbFabric.freeDrawingBrush.decimate = 1;
+                wbFabric.freeDrawingCursor = 'crosshair';
             }
         }
 
-        window.addEventListener('mousemove', e => {
-            if (!wbActive) return;
-            const lc = document.getElementById('local-cursor');
-            if (lc) {
-                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) {
-                    lc.style.display = 'none';
-                } else {
-                    lc.style.display = 'flex';
-                    lc.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-                    const iconMap = { 'draw': 'edit', 'pan': 'pan_tool', 'text': 'title', 'erase': 'ink_eraser' };
-                    const iconEl = lc.querySelector('.collaborator-cursor-icon');
-                    iconEl.innerText = iconMap[wbMode] || 'arrow_selector_tool';
-                    iconEl.style.color = myColor || '#ffffff';
-                    iconEl.style.transform = (isPanning || wbDrawing || activeTextBox || activeRotateHandle || activeScaleHandle) ? (wbMode === 'pan' ? 'scale(0.85) rotate(-15deg)' : 'scale(0.85)') : 'scale(1)';
-                }
-            }
-            if (showCursors && Date.now() - lastCursorBroadcast > 40) {
-                const p = getPos(e);
-                broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
-                lastCursorBroadcast = Date.now();
-            }
-            if (isPanning) {
-                wbOffsetX += e.movementX;
-                wbOffsetY += e.movementY;
-                wbCanvas.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                let tl = document.getElementById('wb-text-layer');
-                if (tl) tl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                let bl = document.getElementById('wb-back-layer');
-                if (bl) bl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                let cl = document.getElementById('wb-cursors-layer');
-                if (cl) cl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-            } else if (wbDrawing) {
-                const p = getPos(e);
-                const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
-                wbLastX = p.x; wbLastY = p.y;
-            }
-        });
-        window.addEventListener('touchmove', e => {
-            if (!wbActive) return;
-            const touch = e.touches[0];
-            const lc = document.getElementById('local-cursor');
-            if (lc) {
-                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) {
-                    lc.style.display = 'none';
-                } else {
-                    lc.style.display = 'flex';
-                    lc.style.transform = `translate(${touch.clientX}px, ${touch.clientY}px)`;
-                    const iconMap = { 'draw': 'edit', 'pan': 'pan_tool', 'text': 'title', 'erase': 'ink_eraser' };
-                    const iconEl = lc.querySelector('.collaborator-cursor-icon');
-                    iconEl.innerText = iconMap[wbMode] || 'arrow_selector_tool';
-                    iconEl.style.color = myColor || '#ffffff';
-                    iconEl.style.transform = (isPanning || wbDrawing || activeTextBox || activeRotateHandle || activeScaleHandle) ? (wbMode === 'pan' ? 'scale(0.85) rotate(-15deg)' : 'scale(0.85)') : 'scale(1)';
-                }
-            }
-            if (showCursors && Date.now() - lastCursorBroadcast > 40) {
-                const p = getPos(touch);
-                broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
-                lastCursorBroadcast = Date.now();
-            }
-            if (isPanning) {
-                if (wbLastTouchX && wbLastTouchY) {
-                    wbOffsetX += touch.clientX - wbLastTouchX;
-                    wbOffsetY += touch.clientY - wbLastTouchY;
-                    wbCanvas.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let tl = document.getElementById('wb-text-layer');
-                    if (tl) tl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let cl = document.getElementById('wb-cursors-layer');
-                    if (cl) cl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                }
-                wbLastTouchX = touch.clientX;
-                wbLastTouchY = touch.clientY;
-            } else if (wbDrawing) {
-                e.preventDefault();
-                const p = getPos(touch);
-                const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
-                wbLastX = p.x; wbLastY = p.y;
-            }
-        }, { passive: false });
-        let wbLastTouchX, wbLastTouchY;
-        window.addEventListener('mouseup', () => { wbDrawing = false; isPanning = false; });
-        window.addEventListener('touchend', () => { wbDrawing = false; isPanning = false; wbLastTouchX = null; wbLastTouchY = null; });
-
-        document.addEventListener('mouseleave', () => {
-            const lc = document.getElementById('local-cursor');
-            if (lc) lc.style.display = 'none';
-        });
-
-        // Make whiteboard window draggable - not needed, it's in the grid now
+        // Backward-compat stub so old wb-draw sync still works via segment replay
+        function drawSegment(x0, y0, x1, y1, color, size, broadcast = false) {
+            // Legacy: called only from .satvik file load / peer wb-draw messages
+            wbStrokes.push({ x0, y0, x1, y1, color, size });
+            // Replay as a Fabric path segment
+            if (!wbFabric) return;
+            const pathStr = `M ${x0} ${y0} L ${x1} ${y1}`;
+            const path = new fabric.Path(pathStr, {
+                stroke: (color === '#111111') ? '#111111' : (color || wbColor),
+                strokeWidth: size || wbSize * 3,
+                fill: null,
+                selectable: false,
+                evented: false,
+                globalCompositeOperation: color === '#111111' ? 'destination-out' : 'source-over',
+                strokeLineCap: 'round',
+                strokeLineJoin: 'round'
+            });
+            wbFabric.add(path);
+        }
 
         // ── Whiteboard data sync ──────────────────────────────────────────────────
         function triggerImageUpload() {
@@ -3527,6 +3684,7 @@
 
                     wbMode = 'select';
                     if (typeof updateWbCursor === 'function') updateWbCursor();
+                    if (typeof updateWbBrush === 'function') updateWbBrush();
                     if (typeof updateToolbarUI === 'function') updateToolbarUI();
                 };
                 img.src = e.target.result;
@@ -3568,11 +3726,100 @@
             });
         }
 
+        function updatePeerLaser(id, px, py, name) {
+            const textLayer = document.getElementById('wb-text-layer');
+            if (!textLayer) return;
+            let laser = document.getElementById(`wb-laser-${id}`);
+            if (!laser) {
+                laser = document.createElement('div');
+                laser.id = `wb-laser-${id}`;
+                laser.className = 'wb-laser-pointer';
+                if (name) {
+                    const lbl = document.createElement('div');
+                    lbl.style.cssText = 'position:absolute;top:15px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:white;padding:2px 8px;border-radius:10px;font-size:10px;white-space:nowrap;pointer-events:none;border:1px solid rgba(255,255,255,0.2);';
+                    lbl.innerText = name;
+                    laser.appendChild(lbl);
+                }
+                textLayer.appendChild(laser);
+            }
+
+            // Track points for smooth canvas trail
+            if (!laserData.has(id)) laserData.set(id, { points: [], name });
+            laserData.get(id).points.push({ x: px, y: py, t: Date.now() });
+
+            laser.style.left = px + 'px';
+            laser.style.top = py + 'px';
+            laser.style.opacity = '1';
+            if (laser._fade) clearTimeout(laser._fade);
+            laser._fade = setTimeout(() => {
+                laser.style.opacity = '0';
+                setTimeout(() => {
+                    if (laser) laser.remove();
+                    laserData.delete(id);
+                }, 300);
+            }, 1000);
+        }
+
+        function renderLasers() {
+            if (!wbActive) return;
+            const canvas = document.getElementById('wb-laser-canvas');
+            if (!canvas) { requestAnimationFrame(renderLasers); return; }
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const now = Date.now();
+
+            laserData.forEach((data, id) => {
+                data.points = data.points.filter(p => now - p.t < 500); // 500ms trail
+                if (data.points.length < 2) return;
+
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#ff4757';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff4757';
+
+                // Draw segments with tapering
+                for (let i = 1; i < data.points.length; i++) {
+                    const p1 = data.points[i - 1];
+                    const p2 = data.points[i];
+                    const age = now - p2.t;
+                    const life = Math.max(0, 1 - (age / 500));
+
+                    ctx.beginPath();
+                    ctx.globalAlpha = life;
+                    ctx.lineWidth = 12 * life; // taper from 12px
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            });
+            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            requestAnimationFrame(renderLasers);
+        }
+
         function handleWhiteboardMessage(msg, peerId) {
             if (msg.type === 'wb-clear') {
                 clearWhiteboard(false);
+            } else if (msg.type === 'wb-path') {
+                // New Fabric.js-based path sync: reconstruct full stroke from JSON
+                if (!wbFabric) return;
+                fabric.util.enlivenObjects([msg.path], (objects) => {
+                    objects.forEach(obj => {
+                        obj.selectable = false;
+                        obj.evented = false;
+                        wbFabric.add(obj);
+                    });
+                    wbFabric.renderAll();
+                });
+            } else if (msg.type === 'wb-fabric-load') {
+                if (wbFabric) {
+                    wbFabric.loadFromJSON(msg.json, () => {
+                        wbFabric.renderAll();
+                        if (typeof updateWbBrush === 'function') updateWbBrush();
+                    });
+                }
             } else if (msg.type === 'wb-strokes-load') {
-                wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                if (wbFabric) { wbFabric.clear(); wbFabric.renderAll(); }
                 wbStrokes = [];
                 msg.strokes.forEach(s => drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false));
             } else if (msg.type === 'wb-text-create') {
@@ -3634,13 +3881,16 @@
                     }
                 }
             } else if (msg.type === 'wb-draw') {
+                // Legacy segment-based draw from older peers
                 drawSegment(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size, false);
             } else if (msg.type === 'wb-open') {
                 if (!wbActive) toggleWhiteboard(false);
+            } else if (msg.type === 'wb-laser') {
+                updatePeerLaser(peerId, msg.x, msg.y, msg.name);
             } else if (msg.type === 'wb-close') {
                 if (wbActive) toggleWhiteboard(false);
             } else if (msg.type === 'wb-cursor') {
-                if (!showCursors) return;
+                if (!showCursors || document.body.classList.contains('is-mobile')) return;
                 let layer = document.getElementById('wb-cursors-layer');
                 if (!layer) return;
                 let cursor = document.getElementById(`wb-cursor-${peerId}`);
@@ -4002,7 +4252,13 @@
             if (mediaPromise) return mediaPromise;
             mediaPromise = (async () => {
                 try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    // Reduced quality for both mobile and desktop — frees CPU for drawing
+                    const videoConstraints = {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 20, max: 20 }
+                    };
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
                     const videoTrack = localStream.getVideoTracks()[0];
                     if (videoTrack) {
                         videoTrack.onended = () => {
@@ -4039,7 +4295,7 @@
                 return;
             }
             try {
-                const constraints = { video: true, audio: true };
+                const constraints = { video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 } }, audio: true };
                 screenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
                 const screenTrack = screenStream.getVideoTracks()[0];
 
