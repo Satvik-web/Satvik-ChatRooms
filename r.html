@@ -4267,9 +4267,9 @@
                 try {
                     // Reduced quality for both mobile and desktop — frees CPU for drawing
                     const videoConstraints = {
-                        width: { ideal: 480, max: 640 },
-                        height: { ideal: 360, max: 480 },
-                        frameRate: { ideal: 15, max: 20 }
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 20, max: 20 }
                     };
                     localStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
                     const videoTrack = localStream.getVideoTracks()[0];
