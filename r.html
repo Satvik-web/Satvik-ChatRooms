@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satvik ChatRooms 2</title>
+    <title>Satvik ChatRooms 3</title>
     <link rel="icon" type="image/png" href="icon.png">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <style>
@@ -1480,8 +1481,6 @@
         <div id="toast-container"></div>
     </div>
 
-    <!-- Hidden resources -->
-    <canvas id="whiteboard-tile-canvas"></canvas>
 
 
     <!-- Participants Overlay -->
@@ -1665,34 +1664,34 @@
         let sharingToast = null;
         let pinnedWrapperId = null;
 
-        // ── Whiteboard ────────────────────────────────────────────────────────────
-        const wbCanvas = document.getElementById('whiteboard-tile-canvas');
-        const wbCtx = wbCanvas.getContext('2d');
-        let wbDrawing = false;
-        let wbLastX = 0, wbLastY = 0;
+        // ── Whiteboard (Fabric.js) ─────────────────────────────────────────────────
         let wbActive = false;
-
-        // State for enhanced whiteboard
+        let wbFabric = null;          // fabric.Canvas instance
+        let wbCanvas = null;          // the raw DOM canvas (set after Fabric init)
         let wbColor = '#ffffff';
         let wbSize = 3;
-        let wbMode = 'draw'; // 'draw', 'erase', 'pan'
-        let wbOffsetX = -2000 + window.innerWidth / 2;
-        let wbOffsetY = -2000 + window.innerHeight / 2;
+        let wbMode = 'draw';          // 'draw', 'erase', 'pan'
+        let wbOffsetX = 0;
+        let wbOffsetY = 0;
         let isPanning = false;
-        let wbRect = null; // Cached for performance
-        let wbPendingDraw = null;
         let wbPendingCursor = null;
-        let wbPendingPan = null;
         let wbAnimationFrame = null;
 
         function updateWbCursor() {
-            wbCanvas.className = '';
-            wbCanvas.style.cursor = 'none';
+            if (!wbFabric) return;
+            if (wbMode === 'pan') {
+                wbFabric.defaultCursor = 'grab';
+                wbFabric.hoverCursor = 'grab';
+            } else if (wbMode === 'erase') {
+                wbFabric.freeDrawingCursor = 'cell';
+            } else {
+                wbFabric.freeDrawingCursor = 'crosshair';
+            }
         }
 
         // ── Text Tool Logic ──
         let wbTextBoxes = new Map();
-        let wbStrokes = [];
+        let wbStrokes = [];           // kept for .satvik file compat
         let wbImages = new Map();
         let showCursors = true;
         let lastCursorBroadcast = 0;
@@ -2354,16 +2353,15 @@
         // ────────────────────────────
 
         function resizeCanvas() {
-            const canvasSize = document.body.classList.contains('is-mobile') ? 2000 : 4000;
-            if (wbCanvas.width !== canvasSize) {
-                wbCanvas.width = canvasSize;
-                wbCanvas.height = canvasSize;
-                wbCtx.clearRect(0, 0, canvasSize, canvasSize);
+            // Fabric.js handles its own sizing via ResizeObserver in initFabricWhiteboard
+            if (wbFabric) {
+                const container = document.getElementById('wb-canvas-container');
+                if (container) {
+                    wbFabric.setWidth(container.offsetWidth);
+                    wbFabric.setHeight(container.offsetHeight);
+                    wbFabric.renderAll();
+                }
             }
-            wbCtx.strokeStyle = '#ffffff';
-            wbCtx.lineWidth = 3;
-            wbCtx.lineCap = 'round';
-            wbCtx.lineJoin = 'round';
         }
 
         function toggleWhiteboard(broadcast = true) {
@@ -2409,7 +2407,7 @@
                 penBtn.className = `wb-tool-btn ${wbMode === 'draw' ? 'active' : ''}`;
                 penBtn.title = 'Pen';
                 penBtn.innerHTML = '<span class="material-symbols-rounded">edit</span>';
-                penBtn.onclick = () => { wbMode = 'draw'; updateWbCursor(); updateToolbarUI(); };
+                penBtn.onclick = () => { wbMode = 'draw'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const textBtn = document.createElement('button');
                 textBtn.className = `wb-tool-btn ${wbMode === 'text' ? 'active' : ''}`;
@@ -2430,13 +2428,13 @@
                 eraserBtn.className = `wb-tool-btn ${wbMode === 'erase' ? 'active' : ''}`;
                 eraserBtn.title = 'Eraser';
                 eraserBtn.innerHTML = '<span class="material-symbols-rounded">ink_eraser</span>';
-                eraserBtn.onclick = () => { wbMode = 'erase'; updateWbCursor(); updateToolbarUI(); };
+                eraserBtn.onclick = () => { wbMode = 'erase'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const panBtn = document.createElement('button');
                 panBtn.className = `wb-tool-btn ${wbMode === 'pan' ? 'active' : ''}`;
                 panBtn.title = 'Pan';
                 panBtn.innerHTML = '<span class="material-symbols-rounded">pan_tool</span>';
-                panBtn.onclick = () => { wbMode = 'pan'; updateWbCursor(); updateToolbarUI(); };
+                panBtn.onclick = () => { wbMode = 'pan'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
                 const imageBtn = document.createElement('button');
                 imageBtn.className = `wb-tool-btn`;
@@ -2454,7 +2452,7 @@
                     const swatch = document.createElement('div');
                     swatch.className = `wb-color-swatch ${wbColor === c ? 'active' : ''}`;
                     swatch.style.backgroundColor = c;
-                    swatch.onclick = () => { wbColor = c; if (wbMode === 'erase') wbMode = 'draw'; updateToolbarUI(); };
+                    swatch.onclick = () => { wbColor = c; if (wbMode === 'erase') wbMode = 'draw'; updateWbBrush(); updateToolbarUI(); };
                     colorGroup.appendChild(swatch);
                 });
 
@@ -2464,6 +2462,7 @@
                 colorPicker.oninput = (e) => {
                     wbColor = e.target.value;
                     if (wbMode === 'erase') wbMode = 'draw';
+                    updateWbBrush();
                     updateToolbarUI();
                 };
                 colorGroup.appendChild(colorPicker);
@@ -2488,7 +2487,7 @@
                 sizeSlider.max = '25';
                 sizeSlider.value = wbSize;
                 sizeSlider.className = 'wb-size-slider';
-                sizeSlider.oninput = (e) => { wbSize = parseInt(e.target.value); };
+                sizeSlider.oninput = (e) => { wbSize = parseInt(e.target.value); updateWbBrush(); };
                 sizeContainer.appendChild(sizeSlider);
 
                 const divider3 = document.createElement('div');
@@ -2752,7 +2751,7 @@
                             });
                         }
 
-                        wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                        if (wbFabric) { wbFabric.clear(); wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric)); }
                         wbStrokes = [];
                         for (const s of newStrokes) {
                             drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false);
@@ -2915,14 +2914,18 @@
 
                 wrapper.style.backgroundColor = '#111111';
                 wrapper.style.zIndex = '0';
-                wbCanvas.style.pointerEvents = 'none';
-                wbCanvas.style.position = 'absolute';
-                wbCanvas.style.top = '0';
-                wbCanvas.style.left = '0';
-                wbCanvas.style.zIndex = '2';
-                if (textLayer) textLayer.style.zIndex = '1';
+                if (textLayer) textLayer.style.zIndex = '3';
+
+                // Fabric.js canvas lives in wb-canvas-container
+                let fabricContainer = document.getElementById('wb-canvas-container');
+                if (!fabricContainer) {
+                    fabricContainer = document.createElement('div');
+                    fabricContainer.id = 'wb-canvas-container';
+                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;';
+                }
+
                 wrapper.appendChild(backLayer);
-                wrapper.appendChild(wbCanvas);
+                wrapper.appendChild(fabricContainer);
                 wrapper.appendChild(textLayer);
                 wrapper.appendChild(cursorsLayer);
                 wrapper.appendChild(cursorToggleBtn);
@@ -2937,29 +2940,23 @@
 
                 wbActive = true;
                 document.body.classList.add('wb-active');
-
                 wbBtn.classList.add('active');
                 refreshLayout();
-                setTimeout(() => {
-                    resizeCanvas();
-                    wbCanvas.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let tl = document.getElementById('wb-text-layer');
-                    if (tl) tl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                    let cl = document.getElementById('wb-cursors-layer');
-                    if (cl) cl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                }, 50);
-                if (broadcast) broadcastWhiteboard({ type: 'wb-open' });
 
-                // Observe size changes (e.g. pinning)
-                if (!wbCanvas._resizeObserver) {
-                    wbCanvas._resizeObserver = new ResizeObserver(resizeCanvas);
-                    wbCanvas._resizeObserver.observe(wrapper);
-                }
+                // Init Fabric.js after layout is settled
+                setTimeout(() => {
+                    initFabricWhiteboard();
+                }, 80);
+
+                if (broadcast) broadcastWhiteboard({ type: 'wb-open' });
             }
         }
 
         function clearWhiteboard(broadcast = true) {
-            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+            if (wbFabric) {
+                wbFabric.clear();
+                wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric));
+            }
             wbStrokes = [];
             const textContainers = document.querySelectorAll('.wb-text-container');
             if (textContainers) textContainers.forEach(el => el.remove());
@@ -3316,36 +3313,28 @@
         window.ClickChat = function () { toggleChat(); };
 
         function getPos(e) {
-            const r = wbRect || wbCanvas.getBoundingClientRect();
+            // Get position relative to the Fabric canvas container
+            const container = document.getElementById('wb-canvas-container');
+            const r = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
             const src = e.touches ? e.touches[0] : e;
             return { x: src.clientX - r.left, y: src.clientY - r.top };
         }
 
+        // mousedown / touchstart: only handle text mode — Fabric.js handles draw/erase/pan internally
         window.addEventListener('mousedown', e => {
             if (!wbActive) return;
             if (e.target.closest('.wb-toolbar-container') || e.target.closest('.wb-toolbar') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
             if (e.target.closest('.wb-text-box') || e.target.closest('.wb-image-box') || e.target.closest('.wb-resize-handle') || e.target.closest('.wb-rotate-handle') || e.target.closest('.collaborator-cursor')) return;
 
-            if (wbMode === 'select') return;
-            if (wbMode === 'pan') {
-                isPanning = true;
-            } else if (wbMode === 'text') {
+            if (wbMode === 'text') {
                 const p = getPos(e);
                 const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                 const fSize = Math.max(16, wbSize * 5);
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
-
                 wbMode = 'select';
                 updateWbCursor();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
-            } else {
-                wbRect = wbCanvas.getBoundingClientRect();
-                wbDrawing = true;
-                const p = getPos(e);
-                wbLastX = p.x; wbLastY = p.y;
-                wbPrevX = p.x; wbPrevY = p.y;
-                if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
             }
         });
         window.addEventListener('touchstart', e => {
@@ -3353,186 +3342,146 @@
             if (e.target.closest('.wb-toolbar-container') || e.target.closest('.wb-toolbar') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
             if (e.target.closest('.wb-text-box') || e.target.closest('.wb-image-box') || e.target.closest('.wb-resize-handle') || e.target.closest('.wb-rotate-handle') || e.target.closest('.collaborator-cursor')) return;
 
-            if (wbMode === 'select') return;
-            if (wbMode === 'pan') {
-                isPanning = true;
-            } else if (wbMode === 'text') {
+            if (wbMode === 'text') {
                 e.preventDefault();
                 const p = getPos(e);
                 const id = Date.now() + '-' + Math.random().toString(36).substring(2, 11);
                 const fSize = Math.max(16, wbSize * 5);
                 const box = createTextBox(id, p.x, p.y, "", '#ffffff', fSize, 'Outfit', false, false, 0, true);
                 setTimeout(() => box.focus(), 50);
-
                 wbMode = 'select';
                 updateWbCursor();
                 if (typeof updateToolbarUI === 'function') updateToolbarUI();
-            } else {
-                e.preventDefault();
-                wbRect = wbCanvas.getBoundingClientRect();
-                wbDrawing = true;
-                const p = getPos(e);
-                wbLastX = p.x; wbLastY = p.y;
-                wbPrevX = p.x; wbPrevY = p.y;
-                if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
             }
         }, { passive: false });
 
-        // Fabric.js-style smooth drawing state
-        let wbPrevX = 0, wbPrevY = 0;
-        const WB_MIN_DIST = 2; // skip points closer than 2px (decimation)
+        // ── Fabric.js Whiteboard Drawing Engine ─────────────────────────────────────
+        // Fabric.js handles all touch/mouse drawing internally with optimized smoothing.
+        // We just set freeDrawingBrush color/width and listen to path:created for sync.
 
-        function drawSegment(x0, y0, x1, y1, color, size, broadcast = true) {
+        function initFabricWhiteboard() {
+            const container = document.getElementById('wb-canvas-container');
+            if (!container) return;
+            if (wbFabric) { wbFabric.dispose(); wbFabric = null; }
+
+            // Create the canvas element inside the container
+            const canvasEl = document.createElement('canvas');
+            canvasEl.id = 'wb-fabric-canvas';
+            container.innerHTML = '';
+            container.appendChild(canvasEl);
+
+            const isMobile = document.body.classList.contains('is-mobile');
+            wbFabric = new fabric.Canvas('wb-fabric-canvas', {
+                isDrawingMode: true,
+                backgroundColor: '#111111',
+                selection: false,
+                imageSmoothingEnabled: false
+            });
+            wbFabric.setWidth(container.offsetWidth || window.innerWidth);
+            wbFabric.setHeight(container.offsetHeight || window.innerHeight);
+
+            // Mobile video constraints already applied at stream acquisition
+            // Fabric PencilBrush setup
+            wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
+            wbFabric.freeDrawingBrush.color = wbColor;
+            wbFabric.freeDrawingBrush.width = wbSize * 3;
+            wbFabric.freeDrawingBrush.decimate = isMobile ? 4 : 2;
+
+            wbCanvas = wbFabric.upperCanvasEl; // for backward compat refs
+
+            // Broadcast the complete path to peers when a stroke is finished
+            wbFabric.on('path:created', (e) => {
+                const pathObj = e.path;
+                pathObj.selectable = false;
+                pathObj.evented = false;
+                const pathData = pathObj.toJSON();
+                broadcastWhiteboard({ type: 'wb-path', path: pathData });
+            });
+
+            // Pan mode: use Fabric viewportTransform drag
+            let panStartX = 0, panStartY = 0;
+            let panVPT = null;
+            wbFabric.on('mouse:down', (opt) => {
+                if (wbMode !== 'pan') return;
+                isPanning = true;
+                panStartX = opt.e.clientX || (opt.e.touches && opt.e.touches[0].clientX) || 0;
+                panStartY = opt.e.clientY || (opt.e.touches && opt.e.touches[0].clientY) || 0;
+                panVPT = [...wbFabric.viewportTransform];
+            });
+            wbFabric.on('mouse:move', (opt) => {
+                if (!isPanning || wbMode !== 'pan') return;
+                const cx = opt.e.clientX || (opt.e.touches && opt.e.touches[0].clientX) || 0;
+                const cy = opt.e.clientY || (opt.e.touches && opt.e.touches[0].clientY) || 0;
+                const vpt = [...panVPT];
+                vpt[4] += cx - panStartX;
+                vpt[5] += cy - panStartY;
+                wbFabric.setViewportTransform(vpt);
+            });
+            wbFabric.on('mouse:up', () => { isPanning = false; });
+
+            // Cursor broadcast (desktop only)
+            wbFabric.upperCanvasEl.addEventListener('mousemove', (e) => {
+                if (!wbActive || document.body.classList.contains('is-mobile')) return;
+                if (showCursors && Date.now() - lastCursorBroadcast > 40) {
+                    const p = wbFabric.getPointer(e);
+                    broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, name: myName, color: myColor });
+                    lastCursorBroadcast = Date.now();
+                }
+            });
+
+            // Resize Fabric canvas when container resizes
+            if (window._wbResizeObserver) window._wbResizeObserver.disconnect();
+            window._wbResizeObserver = new ResizeObserver(() => {
+                if (!wbFabric || !container) return;
+                wbFabric.setWidth(container.offsetWidth);
+                wbFabric.setHeight(container.offsetHeight);
+                wbFabric.renderAll();
+            });
+            window._wbResizeObserver.observe(container);
+
+            updateWbBrush();
+            log('Fabric whiteboard initialized');
+        }
+
+        function updateWbBrush() {
+            if (!wbFabric) return;
+            const isMobile = document.body.classList.contains('is-mobile');
+            if (wbMode === 'pan') {
+                wbFabric.isDrawingMode = false;
+                wbFabric.defaultCursor = 'grab';
+            } else if (wbMode === 'erase') {
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = '#111111';
+                wbFabric.freeDrawingBrush.width = wbSize * 6;
+                wbFabric.freeDrawingCursor = 'cell';
+            } else {
+                wbFabric.isDrawingMode = true;
+                wbFabric.freeDrawingBrush.color = wbColor;
+                wbFabric.freeDrawingBrush.width = wbSize * 3;
+                wbFabric.freeDrawingBrush.decimate = isMobile ? 4 : 2;
+                wbFabric.freeDrawingCursor = 'crosshair';
+            }
+        }
+
+        // Backward-compat stub so old wb-draw sync still works via segment replay
+        function drawSegment(x0, y0, x1, y1, color, size, broadcast = false) {
+            // Legacy: called only from .satvik file load / peer wb-draw messages
             wbStrokes.push({ x0, y0, x1, y1, color, size });
-            const drawColor = color || wbColor;
-            if (drawColor === '#111111') {
-                wbCtx.globalCompositeOperation = 'destination-out';
-                wbCtx.strokeStyle = 'rgba(0,0,0,1)';
-            } else {
-                wbCtx.globalCompositeOperation = 'source-over';
-                wbCtx.strokeStyle = drawColor;
-            }
-            wbCtx.lineWidth = size || wbSize;
-            wbCtx.lineCap = 'round';
-            wbCtx.lineJoin = 'round';
-            // Quadratic curve smoothing: draw through the midpoint (Fabric.js technique)
-            const midX = (x0 + x1) / 2;
-            const midY = (y0 + y1) / 2;
-            wbCtx.beginPath();
-            wbCtx.moveTo(wbPrevX || x0, wbPrevY || y0);
-            wbCtx.quadraticCurveTo(x0, y0, midX, midY);
-            wbCtx.stroke();
-            wbPrevX = midX;
-            wbPrevY = midY;
-            if (broadcast) {
-                broadcastWhiteboard({ type: 'wb-draw', x0, y0, x1, y1, color: color || wbColor, size: size || wbSize });
-            }
+            // Replay as a Fabric path segment
+            if (!wbFabric) return;
+            const pathStr = `M ${x0} ${y0} L ${x1} ${y1}`;
+            const path = new fabric.Path(pathStr, {
+                stroke: (color === '#111111') ? '#111111' : (color || wbColor),
+                strokeWidth: size || wbSize * 3,
+                fill: null,
+                selectable: false,
+                evented: false,
+                globalCompositeOperation: color === '#111111' ? 'destination-out' : 'source-over',
+                strokeLineCap: 'round',
+                strokeLineJoin: 'round'
+            });
+            wbFabric.add(path);
         }
-
-        function wbUpdateLoop() {
-            if (!wbActive || (!wbDrawing && !isPanning && !wbPendingCursor)) {
-                wbAnimationFrame = null;
-                return;
-            }
-
-            if (wbPendingCursor) {
-                const { x, y, mode, hide } = wbPendingCursor;
-                const lc = document.getElementById('local-cursor');
-                if (lc) {
-                    // Mobile Optimization: Hide local cursor completely on mobile
-                    if (hide || document.body.classList.contains('is-mobile')) {
-                        lc.style.display = 'none';
-                    } else {
-                        lc.style.display = 'flex';
-                        lc.style.transform = `translate(${x}px, ${y}px)`;
-                        const iconMap = { 'draw': 'edit', 'pan': 'pan_tool', 'text': 'title', 'erase': 'ink_eraser' };
-                        const iconEl = lc.querySelector('.collaborator-cursor-icon');
-                        if (iconEl && iconEl.dataset.mode !== mode) {
-                            iconEl.innerText = iconMap[mode] || 'arrow_selector_tool';
-                            iconEl.dataset.mode = mode;
-                        }
-                        if (iconEl) {
-                            iconEl.style.color = myColor || '#ffffff';
-                            iconEl.style.transform = (isPanning || wbDrawing || activeTextBox || activeRotateHandle || activeScaleHandle) ? (wbMode === 'pan' ? 'scale(0.85) rotate(-15deg)' : 'scale(0.85)') : 'scale(1)';
-                        }
-                    }
-                }
-                wbPendingCursor = null;
-            }
-
-            if (isPanning && wbPendingPan) {
-                const { dx, dy } = wbPendingPan;
-                wbOffsetX += dx;
-                wbOffsetY += dy;
-                wbCanvas.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                let tl = document.getElementById('wb-text-layer');
-                if (tl) tl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                let cl = document.getElementById('wb-cursors-layer');
-                if (cl) cl.style.transform = `translate(${wbOffsetX}px, ${wbOffsetY}px)`;
-                wbPendingPan = null;
-            }
-
-            if (wbDrawing && wbPendingDraw) {
-                // wbPendingDraw only kept for reference; drawing is now immediate
-            }
-
-            // Only continue rAF loop if cursor updates are still needed
-            if (wbPendingCursor || isPanning) {
-                wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
-            } else {
-                wbAnimationFrame = null;
-            }
-        }
-
-        window.addEventListener('mousemove', e => {
-            if (!wbActive) return;
-
-            const isOverUI = e.target.closest('button') || e.target.closest('input') || e.target.closest('select');
-            wbPendingCursor = { x: e.clientX, y: e.clientY, mode: wbMode, hide: isOverUI };
-
-            const isMobile = document.body.classList.contains('is-mobile');
-            if (showCursors && !isMobile && Date.now() - lastCursorBroadcast > 40) {
-                const p = getPos(e);
-                broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
-                lastCursorBroadcast = Date.now();
-            }
-
-            if (isPanning) {
-                wbPendingPan = { dx: e.movementX, dy: e.movementY };
-            } else if (wbDrawing) {
-                // Draw IMMEDIATELY — no buffering to avoid latency
-                const p = getPos(e);
-                const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
-                wbLastX = p.x; wbLastY = p.y;
-            }
-            if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
-        });
-        window.addEventListener('touchmove', e => {
-            if (!wbActive) return;
-            const touch = e.touches[0];
-
-            const isOverUI = e.target.closest('button') || e.target.closest('input') || e.target.closest('select');
-            wbPendingCursor = { x: touch.clientX, y: touch.clientY, mode: wbMode, hide: isOverUI };
-
-            const isMobile = document.body.classList.contains('is-mobile');
-            if (showCursors && !isMobile && Date.now() - lastCursorBroadcast > 40) {
-                const p = getPos(touch);
-                broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, dragging: isPanning || wbDrawing, name: myName, color: myColor });
-                lastCursorBroadcast = Date.now();
-            }
-
-            if (isPanning) {
-                if (wbLastTouchX && wbLastTouchY) {
-                    const dx = touch.clientX - wbLastTouchX;
-                    const dy = touch.clientY - wbLastTouchY;
-                    wbPendingPan = { dx, dy };
-                }
-                wbLastTouchX = touch.clientX;
-                wbLastTouchY = touch.clientY;
-            } else if (wbDrawing) {
-                e.preventDefault();
-                const p = getPos(touch);
-                // Decimation: skip tiny movements (Fabric.js technique)
-                const dx = p.x - wbLastX, dy = p.y - wbLastY;
-                if (dx * dx + dy * dy >= WB_MIN_DIST * WB_MIN_DIST) {
-                    const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                    drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
-                    wbLastX = p.x; wbLastY = p.y;
-                }
-            }
-            if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
-        }, { passive: false });
-        let wbLastTouchX, wbLastTouchY;
-        window.addEventListener('mouseup', () => { wbDrawing = false; isPanning = false; wbRect = null; });
-        window.addEventListener('touchend', () => { wbDrawing = false; isPanning = false; wbRect = null; wbLastTouchX = null; wbLastTouchY = null; });
-
-        document.addEventListener('mouseleave', () => {
-            const lc = document.getElementById('local-cursor');
-            if (lc) lc.style.display = 'none';
-        });
-
-        // Make whiteboard window draggable - not needed, it's in the grid now
 
         // ── Whiteboard data sync ──────────────────────────────────────────────────
         function triggerImageUpload() {
@@ -3629,8 +3578,19 @@
         function handleWhiteboardMessage(msg, peerId) {
             if (msg.type === 'wb-clear') {
                 clearWhiteboard(false);
+            } else if (msg.type === 'wb-path') {
+                // New Fabric.js-based path sync: reconstruct full stroke from JSON
+                if (!wbFabric) return;
+                fabric.util.enlivenObjects([msg.path], (objects) => {
+                    objects.forEach(obj => {
+                        obj.selectable = false;
+                        obj.evented = false;
+                        wbFabric.add(obj);
+                    });
+                    wbFabric.renderAll();
+                });
             } else if (msg.type === 'wb-strokes-load') {
-                wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                if (wbFabric) { wbFabric.clear(); wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric)); }
                 wbStrokes = [];
                 msg.strokes.forEach(s => drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false));
             } else if (msg.type === 'wb-text-create') {
@@ -3692,6 +3652,7 @@
                     }
                 }
             } else if (msg.type === 'wb-draw') {
+                // Legacy segment-based draw from older peers
                 drawSegment(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size, false);
             } else if (msg.type === 'wb-open') {
                 if (!wbActive) toggleWhiteboard(false);
