@@ -918,6 +918,40 @@
             box-shadow: 0 0 15px var(--primary);
         }
 
+        .wb-laser-pointer {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff4757;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 10px #ff4757, 0 0 20px #ff4757, 0 0 30px rgba(255, 71, 87, 0.5);
+            transition: opacity 0.2s ease-out;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes laser-pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .wb-laser-pointer {
+            animation: laser-pulse 1.5s infinite ease-in-out;
+        }
+
         .wb-divider {
             width: 1px;
             height: 24px;
@@ -1653,8 +1687,16 @@
                 wbFabric.hoverCursor = 'grab';
             } else if (wbMode === 'erase') {
                 wbFabric.freeDrawingCursor = 'cell';
+            } else if (wbMode === 'laser') {
+                wbFabric.freeDrawingCursor = 'none';
             } else {
                 wbFabric.freeDrawingCursor = 'crosshair';
+            }
+            // Cleanup local laser dot if not in laser mode
+            if (wbMode !== 'laser') {
+                const dot = document.getElementById('wb-local-laser');
+                if (dot) dot.style.opacity = '0';
+                setTimeout(() => { if (dot) dot.remove(); }, 200);
             }
         }
 
@@ -2400,6 +2442,12 @@
                 eraserBtn.innerHTML = '<span class="material-symbols-rounded">ink_eraser</span>';
                 eraserBtn.onclick = () => { wbMode = 'erase'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
 
+                const laserBtn = document.createElement('button');
+                laserBtn.className = `wb-tool-btn ${wbMode === 'laser' ? 'active' : ''}`;
+                laserBtn.title = 'Laser Pointer';
+                laserBtn.innerHTML = '<span class="material-symbols-rounded">flare</span>';
+                laserBtn.onclick = () => { wbMode = 'laser'; updateWbCursor(); updateWbBrush(); updateToolbarUI(); };
+
                 const panBtn = document.createElement('button');
                 panBtn.className = `wb-tool-btn ${wbMode === 'pan' ? 'active' : ''}`;
                 panBtn.title = 'Pan';
@@ -2502,6 +2550,7 @@
                 toolbar.appendChild(penBtn);
                 toolbar.appendChild(textBtn);
                 toolbar.appendChild(eraserBtn);
+                toolbar.appendChild(laserBtn);
                 toolbar.appendChild(panBtn);
                 toolbar.appendChild(imageBtn);
                 toolbar.appendChild(divider1);
@@ -2773,6 +2822,7 @@
                     penBtn.classList.toggle('active', wbMode === 'draw');
                     textBtn.classList.toggle('active', wbMode === 'text');
                     eraserBtn.classList.toggle('active', wbMode === 'erase');
+                    laserBtn.classList.toggle('active', wbMode === 'laser');
                     panBtn.classList.toggle('active', wbMode === 'pan');
                     colorGroup.querySelectorAll('.wb-color-swatch:not(.custom-swatch)').forEach(s => {
                         const swatchColor = RGBToHex(s.style.backgroundColor);
@@ -3111,7 +3161,6 @@
                 try {
                     conn.send({
                         type: 'file-chunk',
-                        transferId: transferId,
                         fileName: file.name,
                         fileType: file.type,
                         chunk: chunk,
@@ -3382,10 +3431,10 @@
             wbCanvas = wbFabric.upperCanvasEl; // for backward compat refs
 
             // Broadcast the complete path to peers when a stroke is finished.
-            // In pan mode, immediately remove the path so no ghost stroke appears.
+            // In pan or laser mode, immediately remove the path so no ghost stroke appears.
             wbFabric.on('path:created', (e) => {
-                if (wbMode === 'pan') {
-                    // Discard any path accidentally created during pan
+                if (wbMode === 'pan' || wbMode === 'laser') {
+                    // Discard any path accidentally created during pan/laser
                     wbFabric.remove(e.path);
                     wbFabric.renderAll();
                     return;
@@ -3497,9 +3546,20 @@
             }, { capture: true });
 
 
+            // Laser pointer move listener (broadcast and local display)
+            uc.addEventListener('pointermove', (e) => {
+                if (wbMode !== 'laser' || !wbActive) return;
+                const p = wbFabric.getPointer(e);
+                updatePeerLaser('local', p.x, p.y);
+                if (Date.now() - lastCursorBroadcast > 30) {
+                    broadcastWhiteboard({ type: 'wb-laser', x: p.x, y: p.y, name: myName });
+                    lastCursorBroadcast = Date.now();
+                }
+            }, { passive: true });
+
             // Cursor broadcast (desktop only)
             wbFabric.upperCanvasEl.addEventListener('mousemove', (e) => {
-                if (!wbActive || document.body.classList.contains('is-mobile')) return;
+                if (!wbActive || document.body.classList.contains('is-mobile') || wbMode === 'laser') return;
                 if (showCursors && Date.now() - lastCursorBroadcast > 40) {
                     const p = wbFabric.getPointer(e);
                     broadcastWhiteboard({ type: 'wb-cursor', x: p.x, y: p.y, mode: wbMode, name: myName, color: myColor });
@@ -3528,13 +3588,13 @@
             // Always recreate the brush fresh — guarantees clean state on every mode switch
             wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
 
-            if (wbMode === 'pan') {
+            if (wbMode === 'pan' || wbMode === 'laser') {
                 // Keep isDrawingMode=true so Fabric's mouse:down/move/up events fire normally.
                 // Zero-width transparent brush = no visible ink; path:created discards the path.
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = 'rgba(0,0,0,0)';
                 wbFabric.freeDrawingBrush.width = 0;
-                wbFabric.freeDrawingCursor = 'grab';
+                wbFabric.freeDrawingCursor = (wbMode === 'laser') ? 'none' : 'grab';
             } else if (wbMode === 'select') {
                 // Turn off drawing so touches reach the text/image layer above
                 wbFabric.isDrawingMode = false;
@@ -3669,6 +3729,43 @@
             });
         }
 
+        function updatePeerLaser(id, px, py, name) {
+            const textLayer = document.getElementById('wb-text-layer');
+            if (!textLayer) return;
+            let laser = document.getElementById(`wb-laser-${id}`);
+            if (!laser) {
+                laser = document.createElement('div');
+                laser.id = `wb-laser-${id}`;
+                laser.className = 'wb-laser-pointer';
+                if (name) {
+                    const lbl = document.createElement('div');
+                    lbl.style.cssText = 'position:absolute;top:15px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:white;padding:2px 8px;border-radius:10px;font-size:10px;white-space:nowrap;pointer-events:none;border:1px solid rgba(255,255,255,0.2);';
+                    lbl.innerText = name;
+                    laser.appendChild(lbl);
+                }
+                textLayer.appendChild(laser);
+            }
+
+            // Create trail bit — leaves a persistent path that fades out
+            const trail = document.createElement('div');
+            trail.className = 'wb-laser-pointer';
+            trail.style.cssText = `position:absolute; width:10px; height:10px; background:#ff4757; border-radius:50%; left:${px}px; top:${py}px; pointer-events:none; z-index:999; box-shadow:0 0 10px #ff4757; transform:translate(-50%, -50%); animation:none; transition:opacity 0.2s ease-out;`;
+            textLayer.appendChild(trail);
+            setTimeout(() => {
+                trail.style.opacity = '0';
+                setTimeout(() => trail.remove(), 200);
+            }, 300);
+
+            laser.style.left = px + 'px';
+            laser.style.top = py + 'px';
+            laser.style.opacity = '1';
+            if (laser._fade) clearTimeout(laser._fade);
+            laser._fade = setTimeout(() => {
+                laser.style.opacity = '0';
+                setTimeout(() => { if (laser) laser.remove(); }, 300);
+            }, 1000);
+        }
+
         function handleWhiteboardMessage(msg, peerId) {
             if (msg.type === 'wb-clear') {
                 clearWhiteboard(false);
@@ -3750,6 +3847,8 @@
                 drawSegment(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size, false);
             } else if (msg.type === 'wb-open') {
                 if (!wbActive) toggleWhiteboard(false);
+            } else if (msg.type === 'wb-laser') {
+                updatePeerLaser(peerId, msg.x, msg.y, msg.name);
             } else if (msg.type === 'wb-close') {
                 if (wbActive) toggleWhiteboard(false);
             } else if (msg.type === 'wb-cursor') {
