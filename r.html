@@ -2354,10 +2354,11 @@
         // ────────────────────────────
 
         function resizeCanvas() {
-            if (wbCanvas.width !== 4000) {
-                wbCanvas.width = 4000;
-                wbCanvas.height = 4000;
-                wbCtx.clearRect(0, 0, 4000, 4000);
+            const canvasSize = document.body.classList.contains('is-mobile') ? 2000 : 4000;
+            if (wbCanvas.width !== canvasSize) {
+                wbCanvas.width = canvasSize;
+                wbCanvas.height = canvasSize;
+                wbCtx.clearRect(0, 0, canvasSize, canvasSize);
             }
             wbCtx.strokeStyle = '#ffffff';
             wbCtx.lineWidth = 3;
@@ -4045,7 +4046,11 @@
             if (mediaPromise) return mediaPromise;
             mediaPromise = (async () => {
                 try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    const isMobile = document.body.classList.contains('is-mobile');
+                    const videoConstraints = isMobile
+                        ? { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { max: 15 } }
+                        : true;
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
                     const videoTrack = localStream.getVideoTracks()[0];
                     if (videoTrack) {
                         videoTrack.onended = () => {
