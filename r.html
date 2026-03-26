@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satvik ChatRooms 3</title>
+    <title>Satvik ChatRooms 4</title>
     <link rel="icon" type="image/png" href="icon.png">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -3375,7 +3375,9 @@
                 isDrawingMode: true,
                 backgroundColor: '#111111',
                 selection: false,
-                imageSmoothingEnabled: false
+                imageSmoothingEnabled: false,
+                allowTouchScrolling: false,
+                renderOnAddRemove: false
             });
             wbFabric.setWidth(container.offsetWidth || window.innerWidth);
             wbFabric.setHeight(container.offsetHeight || window.innerHeight);
@@ -3385,7 +3387,7 @@
             wbFabric.freeDrawingBrush = new fabric.PencilBrush(wbFabric);
             wbFabric.freeDrawingBrush.color = wbColor;
             wbFabric.freeDrawingBrush.width = wbSize * 3;
-            wbFabric.freeDrawingBrush.decimate = isMobile ? 4 : 2;
+            wbFabric.freeDrawingBrush.decimate = 1;
 
             wbCanvas = wbFabric.upperCanvasEl; // for backward compat refs
 
@@ -3458,7 +3460,7 @@
                 wbFabric.isDrawingMode = true;
                 wbFabric.freeDrawingBrush.color = wbColor;
                 wbFabric.freeDrawingBrush.width = wbSize * 3;
-                wbFabric.freeDrawingBrush.decimate = isMobile ? 4 : 2;
+                wbFabric.freeDrawingBrush.decimate = 1;
                 wbFabric.freeDrawingCursor = 'crosshair';
             }
         }
@@ -4021,10 +4023,12 @@
             if (mediaPromise) return mediaPromise;
             mediaPromise = (async () => {
                 try {
-                    const isMobile = document.body.classList.contains('is-mobile');
-                    const videoConstraints = isMobile
-                        ? { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { max: 15 } }
-                        : true;
+                    // Reduced quality for both mobile and desktop — frees CPU for drawing
+                    const videoConstraints = {
+                        width: { ideal: 480, max: 640 },
+                        height: { ideal: 360, max: 480 },
+                        frameRate: { ideal: 15, max: 20 }
+                    };
                     localStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
                     const videoTrack = localStream.getVideoTracks()[0];
                     if (videoTrack) {
@@ -4062,7 +4066,7 @@
                 return;
             }
             try {
-                const constraints = { video: true, audio: true };
+                const constraints = { video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 } }, audio: true };
                 screenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
                 const screenTrack = screenStream.getVideoTracks()[0];
 
