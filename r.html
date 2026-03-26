@@ -3344,6 +3344,7 @@
                 wbDrawing = true;
                 const p = getPos(e);
                 wbLastX = p.x; wbLastY = p.y;
+                wbPrevX = p.x; wbPrevY = p.y;
                 if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
             }
         });
@@ -3372,15 +3373,17 @@
                 wbDrawing = true;
                 const p = getPos(e);
                 wbLastX = p.x; wbLastY = p.y;
+                wbPrevX = p.x; wbPrevY = p.y;
                 if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
             }
         }, { passive: false });
 
+        // Fabric.js-style smooth drawing state
+        let wbPrevX = 0, wbPrevY = 0;
+        const WB_MIN_DIST = 2; // skip points closer than 2px (decimation)
+
         function drawSegment(x0, y0, x1, y1, color, size, broadcast = true) {
             wbStrokes.push({ x0, y0, x1, y1, color, size });
-            wbCtx.lineWidth = size || wbSize;
-            wbCtx.lineCap = 'round';
-            wbCtx.lineJoin = 'round';
             const drawColor = color || wbColor;
             if (drawColor === '#111111') {
                 wbCtx.globalCompositeOperation = 'destination-out';
@@ -3389,10 +3392,18 @@
                 wbCtx.globalCompositeOperation = 'source-over';
                 wbCtx.strokeStyle = drawColor;
             }
+            wbCtx.lineWidth = size || wbSize;
+            wbCtx.lineCap = 'round';
+            wbCtx.lineJoin = 'round';
+            // Quadratic curve smoothing: draw through the midpoint (Fabric.js technique)
+            const midX = (x0 + x1) / 2;
+            const midY = (y0 + y1) / 2;
             wbCtx.beginPath();
-            wbCtx.moveTo(x0, y0);
-            wbCtx.lineTo(x1, y1);
+            wbCtx.moveTo(wbPrevX || x0, wbPrevY || y0);
+            wbCtx.quadraticCurveTo(x0, y0, midX, midY);
             wbCtx.stroke();
+            wbPrevX = midX;
+            wbPrevY = midY;
             if (broadcast) {
                 broadcastWhiteboard({ type: 'wb-draw', x0, y0, x1, y1, color: color || wbColor, size: size || wbSize });
             }
@@ -3501,11 +3512,14 @@
                 wbLastTouchY = touch.clientY;
             } else if (wbDrawing) {
                 e.preventDefault();
-                // Draw IMMEDIATELY — no buffering to avoid local ink latency
                 const p = getPos(touch);
-                const color = (wbMode === 'erase') ? '#111111' : wbColor;
-                drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
-                wbLastX = p.x; wbLastY = p.y;
+                // Decimation: skip tiny movements (Fabric.js technique)
+                const dx = p.x - wbLastX, dy = p.y - wbLastY;
+                if (dx * dx + dy * dy >= WB_MIN_DIST * WB_MIN_DIST) {
+                    const color = (wbMode === 'erase') ? '#111111' : wbColor;
+                    drawSegment(wbLastX, wbLastY, p.x, p.y, color, wbSize);
+                    wbLastX = p.x; wbLastY = p.y;
+                }
             }
             if (!wbAnimationFrame) wbAnimationFrame = requestAnimationFrame(wbUpdateLoop);
         }, { passive: false });
