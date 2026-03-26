@@ -870,7 +870,7 @@
         /* Enhanced Whiteboard Toolbar */
         .wb-toolbar {
             position: absolute;
-            top: 15px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             height: 60px;
@@ -2772,7 +2772,7 @@
                             });
                         }
 
-                        if (wbFabric) { wbFabric.clear(); wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric)); }
+                        if (wbFabric) { wbFabric.clear(); wbFabric.renderAll(); }
                         wbStrokes = [];
                         for (const s of newStrokes) {
                             drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false);
@@ -2843,6 +2843,9 @@
                     document.querySelectorAll('.wb-image-box, .wb-text-box, .wb-rotate-handle').forEach(el => {
                         el.style.pointerEvents = (wbMode === 'select') ? 'auto' : 'none';
                     });
+
+                    const fc = document.getElementById('wb-canvas-container');
+                    if (fc) fc.style.pointerEvents = (wbMode === 'select') ? 'none' : 'auto';
                 }
 
                 function RGBToHex(rgb) {
@@ -2872,13 +2875,14 @@
                     textLayer.style.pointerEvents = 'none';
                     wbTextBoxes.forEach(box => textLayer.appendChild(box.parentElement));
                     wbImages.forEach(img => textLayer.appendChild(img.parentElement));
-
-                    const laserCanvas = document.createElement('canvas');
+                }
+                let laserCanvas = document.getElementById('wb-laser-canvas');
+                if (!laserCanvas) {
+                    laserCanvas = document.createElement('canvas');
                     laserCanvas.id = 'wb-laser-canvas';
                     laserCanvas.width = 4000;
                     laserCanvas.height = 4000;
                     laserCanvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none; z-index:5;';
-                    textLayer.appendChild(laserCanvas);
                 }
                 let backLayer = document.getElementById('wb-back-layer');
                 if (!backLayer) {
@@ -2950,12 +2954,13 @@
                 if (!fabricContainer) {
                     fabricContainer = document.createElement('div');
                     fabricContainer.id = 'wb-canvas-container';
-                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;touch-action:none;';
+                    fabricContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:4;touch-action:none;';
                 }
 
                 wrapper.appendChild(backLayer);
                 wrapper.appendChild(fabricContainer);
                 wrapper.appendChild(textLayer);
+                wrapper.appendChild(laserCanvas);
                 wrapper.appendChild(cursorsLayer);
                 wrapper.appendChild(cursorToggleBtn);
                 wrapper.appendChild(toolbar);
@@ -2984,7 +2989,7 @@
         function clearWhiteboard(broadcast = true) {
             if (wbFabric) {
                 wbFabric.clear();
-                wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric));
+                wbFabric.renderAll();
             }
             wbStrokes = [];
             const textContainers = document.querySelectorAll('.wb-text-container');
@@ -3403,7 +3408,7 @@
             fabric.devicePixelRatio = dpr; // ensure Fabric uses the real DPR
             wbFabric = new fabric.Canvas('wb-fabric-canvas', {
                 isDrawingMode: true,
-                backgroundColor: '#111111',
+                backgroundColor: 'transparent',
                 selection: false,
                 enableRetinaScaling: true,
                 allowTouchScrolling: false,
@@ -3479,10 +3484,12 @@
             // Sync wb-text-layer (images + text boxes) to match Fabric's viewportTransform
             function syncTextLayer() {
                 const tl = document.getElementById('wb-text-layer');
-                if (!tl || !wbFabric) return;
+                const lc = document.getElementById('wb-laser-canvas');
+                if (!wbFabric) return;
                 const v = wbFabric.viewportTransform;
-                tl.style.transformOrigin = '0 0';
-                tl.style.transform = `matrix(${v[0]},${v[1]},${v[2]},${v[3]},${v[4]},${v[5]})`;
+                const matrix = `matrix(${v[0]},${v[1]},${v[2]},${v[3]},${v[4]},${v[5]})`;
+                if (tl) { tl.style.transformOrigin = '0 0'; tl.style.transform = matrix; }
+                if (lc) { lc.style.transformOrigin = '0 0'; lc.style.transform = matrix; }
             }
 
             // ── Pointer events for pan (desktop mouse + mobile touch unified) ─────
@@ -3825,7 +3832,7 @@
                     wbFabric.renderAll();
                 });
             } else if (msg.type === 'wb-strokes-load') {
-                if (wbFabric) { wbFabric.clear(); wbFabric.setBackgroundColor('#111111', wbFabric.renderAll.bind(wbFabric)); }
+                if (wbFabric) { wbFabric.clear(); wbFabric.renderAll(); }
                 wbStrokes = [];
                 msg.strokes.forEach(s => drawSegment(s.x0, s.y0, s.x1, s.y1, s.color, s.size, false));
             } else if (msg.type === 'wb-text-create') {
